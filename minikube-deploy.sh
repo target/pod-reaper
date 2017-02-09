@@ -9,5 +9,4 @@ CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 docker build . --tag=pod-reaper
 
 # delete any lingering deployment, create a new deployment
-kubectl --context=minikube delete --filename cron.yml
-kubectl --context=minikube create --filename cron.yml
+kubectl --context=minikube apply --filename deployment.yml

@@ -5,10 +5,11 @@ import (
 	"k8s.io/client-go/1.5/kubernetes"
 	"k8s.io/client-go/1.5/pkg/api"
 	"k8s.io/client-go/1.5/pkg/api/unversioned"
-	"k8s.io/client-go/1.5/pkg/api/v1"
+	"k8s.io/client-go/1.5/pkg/labels"
+	"k8s.io/client-go/1.5/pkg/selection"
+	"k8s.io/client-go/1.5/pkg/util/sets"
 	"k8s.io/client-go/1.5/rest"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -20,18 +21,12 @@ func maxAge() time.Duration {
 	return duration
 }
 
-func namespace() string {
-	return os.Getenv("NAMESPACE")
-}
-
-func reapPhase(phase v1.PodPhase) bool {
-	reapPhases := strings.Split(os.Getenv("REAP_PODS_IN_PHASES"), ",")
-	for _, reapPhase := range reapPhases {
-		if phase == v1.PodPhase(reapPhase) {
-			return true
-		}
+func pollInterval() time.Duration {
+	interval, err := time.ParseDuration(os.Getenv("POLL_INTERVAL"))
+	if err != nil {
+		panic(err.Error())
 	}
-	return false
+	return interval
 }
 
 func clientSet() *kubernetes.Clientset {
@@ -48,7 +43,14 @@ func clientSet() *kubernetes.Clientset {
 
 func reap() {
 	clientSet := clientSet()
-	pods, err := clientSet.Core().Pods(namespace()).List(api.ListOptions{})
+	selectorKey := os.Getenv("LABEL_KEY")
+	selectorValue := sets.NewString(os.Getenv("LABEL_VALUE"))
+	requirement, err := labels.NewRequirement(selectorKey, selection.Equals, selectorValue)
+	if err != nil {
+		panic(err.Error())
+	}
+	selector := labels.NewSelector().Add(*requirement)
+	pods, err := clientSet.Core().Pods(os.Getenv("NAMESPACE")).List(api.ListOptions{LabelSelector: selector})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -62,19 +64,13 @@ func reap() {
 				fmt.Println(err.Error())
 			}
 		}
-		if reapPhase(status.Phase) {
-			err := clientSet.Core().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, nil)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-		}
 	}
 }
 
 func main() {
 	for {
 		reap()
-		time.Sleep(1 * time.Minute)
+		time.Sleep(pollInterval())
 	}
 
 }
