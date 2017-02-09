@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pod-reaper
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pod-reaper
+    spec:
+      containers:
+      - name: pod-reaper
+        image: pod-reaper:latest
+        imagePullPolicy: Never
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+        env:
+          - name: MAX_DURATION
+            value: 1m
+          - name: REAP_PODS_IN_PHASES
+            value: Completed,Unknown
+#          - name: NAMESPACE
+#            value: purple
