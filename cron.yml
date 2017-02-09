@@ -1,0 +1,15 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: pod-reaper
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: pod-reaper
+            image: pod-reaper
+            imagePullPolicy: Never
+          restartPolicy: Never
