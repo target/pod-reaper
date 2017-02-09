@@ -12,4 +12,7 @@ spec:
           - name: pod-reaper
             image: pod-reaper
             imagePullPolicy: Never
+            env:
+              - name: MAX_DURATION
+                value: 1h
           restartPolicy: Never
