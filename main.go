@@ -45,7 +45,7 @@ func reap() {
 	clientSet := clientSet()
 	selectorKey := os.Getenv("LABEL_KEY")
 	selectorValue := sets.NewString(os.Getenv("LABEL_VALUE"))
-	requirement, err := labels.NewRequirement(selectorKey, selection.Equals, selectorValue)
+	requirement, err := labels.NewRequirement(selectorKey, selection.NotEquals, selectorValue)
 	if err != nil {
 		panic(err.Error())
 	}

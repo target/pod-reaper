@@ -7,7 +7,7 @@ spec:
   template:
     metadata:
       labels:
-        app: pod-reaper
+        pod-reaper: disabled
     spec:
       containers:
       - name: pod-reaper
@@ -22,10 +22,10 @@ spec:
             memory: 20Mi
         env:
           - name: MAX_DURATION
-            value: 3h
+            value: 50s
           - name: POLL_INTERVAL
-            value: 1m
+            value: 10s
           - name: LABEL_KEY
-            value: app
+            value: pod-reaper
           - name: LABEL_VALUE
-            value: hello-cloud-deployment
+            value: disabled
