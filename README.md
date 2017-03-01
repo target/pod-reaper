@@ -22,6 +22,10 @@ variables:
  never be deleted by the pod reaper
 - `NAMESPACE` (default ""): the namespace where pod reaper will look for pods
 
+Note: this controller uses an `InClusterConfig` which makes use of the service account that kubernetes gives to its
+pods. Only pods accessible to this service account will be visible to the pod-reaper. Different service accounts may 
+have wildly different access permissions.
+
 ### Logic
 
 The following is the human readable version of the logic behind pod reaper:
@@ -34,7 +38,7 @@ The following is the human readable version of the logic behind pod reaper:
 1. Sleep for `POLL_INTERVAL` and run again
 
 While not strictly required, using the `EXCLUDE_LABEL_KEY: EXCLUDE_LABEL_VALUE` metadata label to exclude the pod-reaper
- so that it does not reap itself. There is no guarentee on the order of reaping, so it may reap itself before getting to
+ so that it does not reap itself. There is no guarantee on the order of reaping, so it may reap itself before getting to
  other pods that meet the criteria for deletion.
 
 
