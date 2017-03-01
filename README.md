@@ -25,6 +25,7 @@ variables:
 ### Logic
 
 The following is the human readable version of the logic behind pod reaper:
+
 1. get all the pods in the specified `NAMESPACE` that do not have a metadata label with 
  `EXCLUDE_LABEL_KEY: EXCLUDE_LABEL_VALUE`
 1. compare the age of the pod to the `MAX_POD_DURATION`
