@@ -21,11 +21,11 @@ spec:
             cpu: 20m
             memory: 20Mi
         env:
-          - name: MAX_DURATION
-            value: 50s
+          - name: MAX_POD_DURATION
+            value: 4m
           - name: POLL_INTERVAL
             value: 10s
-          - name: LABEL_KEY
-            value: pod-reaper
-          - name: LABEL_VALUE
-            value: disabled
+          - name: CONTAINER_STATUSES
+            value: ImagePullBackOff,ErrImagePull
+          - name: NAMESPACE
+            value: default
