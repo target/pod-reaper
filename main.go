@@ -67,11 +67,14 @@ func hasStatus(pod v1.Pod, containerStates []string) (bool, string) {
 			}
 		}
 	}
-	return false, pod.Status.Reason
+	return false, ""
 }
 
 func exceedsMaxDuration(pod v1.Pod, maxPodDuration time.Duration) bool {
 	cutoff := unversioned.Unix(time.Now().Add(-1*maxPodDuration).Unix(), 0)
+	if pod.Status.StartTime == nil {
+		return false
+	}
 	return pod.Status.StartTime.Before(cutoff)
 }
 

@@ -2,6 +2,9 @@
 # minikube start
 # eval $(minikube docker-env)
 
+# delete old Deployment
+kubectl --context=minikube delete --filename deployment.yml
+
 # build the local binary
 rm pod-reaper
 go fmt
@@ -12,6 +15,5 @@ CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 docker rmi pod-reaper
 docker build --tag=pod-reaper .
 
-# delete any lingering deployment, create a new deployment
-kubectl --context=minikube delete --filename deployment.yml
+# create a new deployment
 kubectl --context=minikube apply --filename deployment.yml

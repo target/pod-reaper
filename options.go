@@ -53,5 +53,11 @@ func options() Options {
 }
 
 func (options *Options) printOptions() {
-	fmt.Printf("%+v\n", options)
+	// write out the used environment variables
+	fmt.Printf("MAX_POD_DURATION: %s\n", options.maxPodDuration)
+	fmt.Printf("POLL_INTERVAL: %s\n", options.pollInterval)
+	fmt.Printf("CONTAINER_STATUSES: %s\n", strings.Join(options.containerStatuses, ", "))
+	fmt.Printf("EXCLUDE_LABEL_KEY: %s\n", options.excludeLabelKey)
+	fmt.Printf("EXCLUDE_LABEL_VALUE: %s\n", options.excludeLabelValue)
+	fmt.Printf("NAMESPACE: %s\n", options.namespace)
 }
