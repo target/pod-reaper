@@ -22,7 +22,7 @@ spec:
             memory: 20Mi
         env:
           - name: MAX_POD_DURATION
-            value: 4m
+            value: 2m
           - name: POLL_INTERVAL
             value: 10s
           - name: CONTAINER_STATUSES
