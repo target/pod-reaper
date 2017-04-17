@@ -16,7 +16,7 @@ func TestDefaultMaxPodDuration(test *testing.T) {
 }
 
 func TestDefaultPollInterval(test *testing.T) {
-	duration, err := time.ParseDuration("15s")
+	duration, err := time.ParseDuration("1m")
 	if err != nil {
 		test.Errorf(err.Error())
 	}
