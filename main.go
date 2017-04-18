@@ -49,7 +49,8 @@ func reap(options Options) {
 			fmt.Println(message)
 			err := clientSet.Core().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, nil)
 			if err != nil {
-				panic(err)
+				// this could be a race condition (someone else deleted the pod)
+				fmt.Errorf(err.Error())
 			}
 		}
 	}

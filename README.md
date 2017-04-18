@@ -13,7 +13,7 @@ specification (see `deployment.yml`). The configuration of the plugin is control
 variables:
 
 - `MAX_POD_DURATION` (default: "2h"): pods with an age greater than this duration will be reaped unless excluded
-- `POLL_INTERVAL` (default: "15s"): how often the pod reaper will check for pods to delete
+- `POLL_INTERVAL` (default: "1m"): how often the pod reaper will check for pods to delete
 - `CONTAINER_STATUSES` (default: ""): pods with a status included in this comma separated list (with no spaces) will be
  reaped unless exclude
 - `EXCLUDE_LABEL_KEY` (default: "pod-reaper"): pods with this key (and corresponding value) as a metadata label will be

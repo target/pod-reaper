@@ -24,7 +24,7 @@ spec:
           - name: MAX_POD_DURATION
             value: 2m
           - name: POLL_INTERVAL
-            value: 10s
+            value: 30s
           - name: CONTAINER_STATUSES
             value: ImagePullBackOff,ErrImagePull
           - name: NAMESPACE

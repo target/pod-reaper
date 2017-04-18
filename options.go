@@ -44,7 +44,7 @@ func split(environmentVariable string) []string {
 func options() Options {
 	return Options{
 		maxPodDuration:    duration("MAX_POD_DURATION", "2h"),
-		pollInterval:      duration("POLL_INTERVAL", "15s"),
+		pollInterval:      duration("POLL_INTERVAL", "1m"),
 		containerStatuses: split("CONTAINER_STATUSES"),
 		excludeLabelKey:   environment("EXCLUDE_LABEL_KEY", "pod-reaper"),
 		excludeLabelValue: environment("EXCLUDE_LABEL_VALUE", "disabled"),
