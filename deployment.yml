@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: pod-reaper
-        image: pod-reaper:latest
+        image: target/pod-reaper:latest
         imagePullPolicy: Never
         resources:
           limits:
