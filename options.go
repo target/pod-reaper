@@ -5,10 +5,18 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"os"
 	"pod-reaper/rules"
 	"strings"
 	"time"
 )
+
+// environment variable names
+const ENV_NAMESPACE = "NAMESPACE"
+const ENV_POLL_INTERVAL = "POLL_INTERVAL"
+const ENV_RUN_DURATION = "RUN_DURATION"
+const ENV_EXCLUDE_LABEL_KEY = "EXCLUDE_LABEL_KEY"
+const ENV_EXCLUDE_LABEL_VALUES = "EXCLUDE_LABEL_VALUES"
 
 type options struct {
 	namespace      string
@@ -18,59 +26,68 @@ type options struct {
 	rules          []rules.Rule
 }
 
-func namespace(environment configuration) (namespace string) {
-	namespace = environment.namespace
+func environmentVariable(key string, defValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return defValue
+	}
+	return value
+}
+func environmentVariableSlice(key string) []string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return []string{}
+	}
+	return strings.Split(value, ",")
+}
+
+func namespace() (namespace string) {
+	namespace = environmentVariable(ENV_NAMESPACE, "")
 	fmt.Printf("using namespace \"%s\"\n", namespace)
 	return
 }
 
-func pollInterval(environment configuration) (duration time.Duration, err error) {
-	duration, err = time.ParseDuration(environment.pollInterval)
+func pollInterval() time.Duration {
+	duration, err := time.ParseDuration(environmentVariable(ENV_POLL_INTERVAL, "1m"))
 	if err != nil {
-		err = fmt.Errorf("invalid poll interval: %s", err)
-		return
+		panic(fmt.Errorf("invalid poll interval: %s", err))
 	}
 	fmt.Printf("using poll interval \"%s\"\n", duration.String())
-	return
+	return duration
 }
 
-func runDuration(environment configuration) (duration time.Duration, err error) {
-	duration, err = time.ParseDuration(environment.runDuration)
+func runDuration() time.Duration {
+	duration, err := time.ParseDuration(environmentVariable(ENV_RUN_DURATION, "0s"))
 	if err != nil {
-		err = fmt.Errorf("invalid run duration: %s", err)
-		return
+		panic(fmt.Errorf("invalid run duration: %s", err))
 	}
 	if duration == 0 {
-		fmt.Println("using indefinite run duration")
-		return
+		fmt.Println("using indefinite run duration (used if run duration is specified to 0s)")
+	} else {
+		fmt.Printf("using run duration \"%s\"\n", duration.String())
 	}
-	fmt.Printf("using run duration \"%s\"\n", duration.String())
-	return
+	return duration
 }
 
-func labelExclusion(environment configuration) (labelExclusion *labels.Requirement, err error) {
-	excludeLabelKey := environment.excludeLabelKey
-	excludeLabelValues := strings.Split(environment.excludeLabelValues, ",")
+func labelExclusion() *labels.Requirement {
+	excludeLabelKey := environmentVariable(ENV_EXCLUDE_LABEL_KEY, "")
+	excludeLabelValues := environmentVariableSlice(ENV_EXCLUDE_LABEL_VALUES)
 	if excludeLabelKey == "" && len(excludeLabelValues) != 0 {
-		err = errors.New("specified exclude label values but did not specifiy exclude label key")
-		return
+		panic(errors.New("specified exclude label values but did not specifiy exclude label key"))
 	} else if excludeLabelKey != "" && len(excludeLabelValues) == 0 {
-		err = errors.New("specified exclude label key but did not specify exclude label values")
-		return
+		panic(errors.New("specified exclude label key but did not specify exclude label values"))
 	} else if excludeLabelKey == "" && len(excludeLabelValues) == 0 {
-
-		return
+		return nil
 	}
-	labelExclusion, err = labels.NewRequirement(excludeLabelKey, selection.NotIn, excludeLabelValues)
+	labelExclusion, err := labels.NewRequirement(excludeLabelKey, selection.NotIn, excludeLabelValues)
 	if err != nil {
-		err = fmt.Errorf("could not create exclude label: %s", err)
+		panic(fmt.Errorf("could not create exclude label: %s", err))
 	}
 	fmt.Printf("will exclude pods with label key: %s and a value in %s", excludeLabelKey, excludeLabelValues)
-	return
+	return labelExclusion
 }
 
-func getRules(environment configuration) (rules []rules.Rule, err error) {
-	err = nil
+func createRules() {
 	//errs := []error{}
 	//ruleMessage := "reaping when the following rules are met:\n"
 	//
@@ -120,34 +137,14 @@ func getRules(environment configuration) (rules []rules.Rule, err error) {
 	//
 	//// log the rules
 	//fmt.Println(ruleMessage)
-	return
 }
 
 func loadOptions() options {
-	errs := []error{}
-	configuration := loadConfiguration()
-	namespace := namespace(configuration)
-	pollInterval, err := pollInterval(configuration)
-	if err != nil {
-		errs = append(errs, err)
-	}
-	runDuration, err := runDuration(configuration)
-	if err != nil {
-		errs = append(errs, err)
-	}
-	labelExclusion, err := labelExclusion(configuration)
-	if err != nil {
-		errs = append(errs, err)
-	}
-	rule, err := getRules(configuration)
-	if err != nil {
-		errs = append(errs, err)
-	}
 	return options{
-		namespace:      namespace,
-		pollInterval:   pollInterval,
-		runDuration:    runDuration,
-		labelExclusion: labelExclusion,
-		rules:          rule,
+		namespace:      namespace(),
+		pollInterval:   pollInterval(),
+		runDuration:    runDuration(),
+		labelExclusion: labelExclusion(),
+		//rules:          createRules(),
 	}
 }
