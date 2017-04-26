@@ -6,6 +6,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
+	"os"
+	"time"
 )
 
 func clientSet() *kubernetes.Clientset {
@@ -34,29 +36,22 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 		panic(err.Error())
 	}
 	return podList
-
-	//labelExclusion := options.labelExclusion
-	//if labelExclusion == nil {
-	//	pods, err := clientSet.CoreV1().Pods(options.namespace).List(v1.ListOptions{})
-	//	if err != nil {
-	//		panic(err.Error())
-	//	}
-	//	return pods
-	//
-	//}
-	//selector := labels.NewSelector().Add(options.labelExclusion)
-	//pods, err := clientSet.CoreV1().Pods(options.namespace).List(v1.ListOptions{LabelSelector:selector})
-	//if err != nil {
-	//	panic(err.Error())
-	//}
-	//return pods
 }
 
 func main() {
 	options := loadOptions()
+	runForever := options.runDuration == 0
+	cutoff := time.Now().Add(options.runDuration)
 	pods := getPods(clientSet(), options)
-	for _, pod := range pods.Items {
-		fmt.Printf("Found pod: %s\n", pod.Name)
+	for {
+		for _, pod := range pods.Items {
+			fmt.Printf("Found pod: %s\n", pod.Name)
+		}
+		if !runForever && time.Now().After(cutoff) {
+			fmt.Printf("Duration %s has elapsed, stopping execution\n", options.runDuration.String())
+			os.Exit(0) // successful exit
+		}
+		time.Sleep(options.pollInterval)
 	}
-	fmt.Println("hello")
+
 }

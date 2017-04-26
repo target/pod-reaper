@@ -40,6 +40,10 @@ func runDuration(environment configuration) (duration time.Duration, err error) 
 		err = fmt.Errorf("invalid run duration: %s", err)
 		return
 	}
+	if duration == 0 {
+		fmt.Println("using indefinite run duration")
+		return
+	}
 	fmt.Printf("using run duration \"%s\"\n", duration.String())
 	return
 }
