@@ -20,12 +20,12 @@ spec:
           requests:
             cpu: 20m
             memory: 20Mi
-        env:
-          - name: MAX_POD_DURATION
-            value: 2m
-          - name: POLL_INTERVAL
-            value: 30s
-          - name: CONTAINER_STATUSES
-            value: ImagePullBackOff,ErrImagePull
-          - name: NAMESPACE
-            value: default
+#        env:
+#          - name: MAX_POD_DURATION
+#            value: 2m
+#          - name: POLL_INTERVAL
+#            value: 30s
+#          - name: CONTAINER_STATUSES
+#            value: ImagePullBackOff,ErrImagePull
+#          - name: NAMESPACE
+#            value: default
