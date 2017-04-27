@@ -43,7 +43,11 @@ func environmentVariableSlice(key string) []string {
 
 func namespace() (namespace string) {
 	namespace = environmentVariable(ENV_NAMESPACE, "")
-	fmt.Printf("using namespace \"%s\"\n", namespace)
+	if namespace == "" {
+		fmt.Println("using all namespaces (used if namespace is set to \"\")")
+	} else {
+		fmt.Printf("using namespace \"%s\"\n", namespace)
+	}
 	return
 }
 
@@ -83,60 +87,8 @@ func labelExclusion() *labels.Requirement {
 	if err != nil {
 		panic(fmt.Errorf("could not create exclude label: %s", err))
 	}
-	fmt.Printf("will exclude pods with label key: %s and a value in %s", excludeLabelKey, excludeLabelValues)
+	fmt.Printf("using label exclusion, ignoring pods with label key: %s and value in %s\n", excludeLabelKey, excludeLabelValues)
 	return labelExclusion
-}
-
-func createRules() {
-	//errs := []error{}
-	//ruleMessage := "reaping when the following rules are met:\n"
-	//
-	//// max duration rule
-	//maxDuration, err := time.ParseDuration(environment.maxDuration)
-	//if err != nil {
-	//	err = fmt.Errorf("invalid max duration: %s", err)
-	//	errs = append(errs, err)
-	//} else if maxDuration.String() != "0s" {
-	//	maxDurationRule := maxDurationRule{duration: maxDuration}
-	//	rules = append(rules, maxDurationRule)
-	//	ruleMessage = fmt.Sprintf("%s\t- maximum pod duration > %s\n", ruleMessage, maxDuration.String())
-	//}
-	//
-	//// container statuses rule
-	//containerStatuses := strings.Split(environment.containerStatuses, ",")
-	//if len(containerStatuses) != 0 {
-	//	containerStatusesRule := containerStatusesRule{reapStatuses: containerStatuses}
-	//	rules = append(rules, containerStatusesRule)
-	//	ruleMessage = fmt.Sprintf("%s\t- container status in %s\n", ruleMessage, containerStatuses)
-	//}
-	//
-	//// chaos chance rule
-	//chaosChance, err := strconv.ParseFloat(environment.chaosChance, 64)
-	//if err != nil {
-	//	err = fmt.Errorf("invalid chaos chance: %s", err)
-	//	errs = append(errs, err)
-	//} else if chaosChance != 0.0 {
-	//	chaosChanceRule := chaosRule{chance: chaosChance}
-	//	rules = append(rules, chaosChanceRule)
-	//	ruleMessage = fmt.Sprintf("%s\t- choas: a random number in [0.0,1.0) < %f\n", ruleMessage, chaosChance)
-	//}
-	//
-	//// handle error cases
-	//if len(rules) == 0 {
-	//	err = errors.New("no rules were defined")
-	//	return
-	//}
-	//if len(errs) > 0 {
-	//	errMessage := "Errors:\n"
-	//	for index, err := range errs {
-	//		errMessage = fmt.Sprintf("%s\tError %d: %s\n", errMessage, index+1, err.Error())
-	//	}
-	//	err = errors.New(errMessage)
-	//	return
-	//}
-	//
-	//// log the rules
-	//fmt.Println(ruleMessage)
 }
 
 func loadOptions() options {
@@ -145,6 +97,6 @@ func loadOptions() options {
 		pollInterval:   pollInterval(),
 		runDuration:    runDuration(),
 		labelExclusion: labelExclusion(),
-		//rules:          createRules(),
+		rules:          rules.LoadRules(),
 	}
 }

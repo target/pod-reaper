@@ -10,7 +10,7 @@ spec:
         pod-reaper: disabled
     spec:
       containers:
-      - name: pod-reaper
+      - name: pod-reaper-chaos-after-2m
         image: pod-reaper:latest
         imagePullPolicy: Never
         resources:
@@ -21,5 +21,36 @@ spec:
             cpu: 20m
             memory: 20Mi
         env:
+          - name: NAMESPACE
+            value: default
           - name: POLL_INTERVAL
             value: 30s
+          - name: EXCLUDE_LABEL_KEY
+            value: pod-reaper
+          - name: EXCLUDE_LABEL_VALUES
+            value: disabled
+          - name: MAX_DURATION
+            value: 2m
+          - name: CHAOS_CHANCE
+            value: ".3"
+      - name: pod-reaper-chaos
+        image: pod-reaper:latest
+        imagePullPolicy: Never
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+        env:
+          - name: NAMESPACE
+            value: default
+          - name: POLL_INTERVAL
+            value: 30s
+          - name: EXCLUDE_LABEL_KEY
+            value: pod-reaper
+          - name: EXCLUDE_LABEL_VALUES
+            value: disabled
+          - name: CHAOS_CHANCE
+            value: ".1"

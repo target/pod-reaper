@@ -1,41 +1,32 @@
 package rules
 
 import (
-	"fmt"
-	"k8s.io/kubernetes/pkg/api/v1"
-	"math/rand"
+	"k8s.io/client-go/pkg/api/v1"
+	"errors"
 )
 
 type Rule interface {
-	Load() (bool, interface{}, error)
+	load() bool
 	ShouldReap(pod v1.Pod) (bool, string)
 }
 
-
-// status
-type containerStatusesRule struct {
-	reapStatuses []string
-}
-
-func (status containerStatusesRule) shouldReap(pod v1.Pod) (bool, string) {
-	for _, reapStatus := range status.reapStatuses {
-		for _, containerStatus := range pod.Status.ContainerStatuses {
-			state := containerStatus.State
-			// check both waiting and terminated conditions
-			if (state.Waiting != nil && state.Waiting.Reason == reapStatus) ||
-				(state.Terminated != nil && state.Terminated.Reason == reapStatus) {
-				return true, fmt.Sprintf("has status of %s", reapStatus)
-			}
+func LoadRules() []Rule {
+	// load all possible rules
+	rules := []Rule{
+		&maxDurationRule{},
+		&containerStatusesRule{},
+		&chaosRule{},
+	}
+	// return only the active rules
+	loadedRules := []Rule{}
+	for _, rule := range rules {
+		if rule.load() {
+			loadedRules = append(loadedRules, rule)
 		}
 	}
-	return false, ""
-}
-
-// chaos
-type chaosRule struct {
-	chance float64
-}
-
-func (chaos chaosRule) shouldReap(pod v1.Pod) (bool, string) {
-	return rand.Float64() < chaos.chance, "was flagged for chaos"
+	//  panic if no rules are loaded
+	if len(loadedRules) == 0 {
+		panic(errors.New("no rules were loaded"))
+	}
+	return loadedRules
 }

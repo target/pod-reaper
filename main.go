@@ -7,6 +7,8 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 	"os"
+	"pod-reaper/rules"
+	"strings"
 	"time"
 )
 
@@ -25,7 +27,6 @@ func clientSet() *kubernetes.Clientset {
 func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	coreClient := clientSet.CoreV1()
 	pods := coreClient.Pods(options.namespace)
-
 	listOptions := v1.ListOptions{}
 	if options.labelExclusion != nil {
 		selector := labels.NewSelector().Add(*options.labelExclusion)
@@ -38,15 +39,44 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	return podList
 }
 
+func shouldReap(ruleList []rules.Rule, pod v1.Pod) (bool, string) {
+	reasons := []string{}
+	for _, rule := range ruleList {
+		reap, reason := rule.ShouldReap(pod)
+		if !reap {
+			return false, ""
+		}
+		reasons = append(reasons, reason)
+	}
+	return true, strings.Join(reasons, " AND ")
+}
+
+func reap(clientSet *kubernetes.Clientset, pod v1.Pod, reason string) {
+	fmt.Printf("Reaping Pod %s because %s\n", pod.Name, reason)
+	err := clientSet.Core().Pods(pod.Namespace).Delete(pod.Name, nil)
+	if err != nil {
+		// log the error, but continue on
+		fmt.Fprintf(os.Stderr, "unable to delete pod %s because %s", pod.Name, err)
+	}
+}
+
+func scytheCycle(clientSet *kubernetes.Clientset, options options) {
+	pods := getPods(clientSet, options)
+	for _, pod := range pods.Items {
+		shouldReap, reason := shouldReap(options.rules, pod)
+		if shouldReap {
+			reap(clientSet, pod, reason)
+		}
+	}
+}
+
 func main() {
+	clientSet := clientSet()
 	options := loadOptions()
 	runForever := options.runDuration == 0
 	cutoff := time.Now().Add(options.runDuration)
-	pods := getPods(clientSet(), options)
 	for {
-		for _, pod := range pods.Items {
-			fmt.Printf("Found pod: %s\n", pod.Name)
-		}
+		scytheCycle(clientSet, options)
 		if !runForever && time.Now().After(cutoff) {
 			fmt.Printf("Duration %s has elapsed, stopping execution\n", options.runDuration.String())
 			os.Exit(0) // successful exit
