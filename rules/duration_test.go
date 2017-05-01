@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func testPod(startTime *time.Time) v1.Pod {
+func testDurationPod(startTime *time.Time) v1.Pod {
 	pod := v1.Pod{}
 	if startTime != nil {
 		setTime := unversioned.NewTime(*startTime)
@@ -18,7 +18,7 @@ func testPod(startTime *time.Time) v1.Pod {
 	return pod
 }
 
-func TestLoad(test *testing.T) {
+func TestDurationLoad(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "30m")
 	active, err := (&duration{}).load()
@@ -27,7 +27,7 @@ func TestLoad(test *testing.T) {
 	}
 }
 
-func TestFailLoad(test *testing.T) {
+func TestDurationFailLoad(test *testing.T) {
 	os.Clearenv()
 	active, err := (&duration{}).load()
 	if active || err != nil {
@@ -35,7 +35,7 @@ func TestFailLoad(test *testing.T) {
 	}
 }
 
-func TestInvalid(test *testing.T) {
+func TestDurationInvalid(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "not-a-duration")
 	active, err := (&duration{}).load()
@@ -44,38 +44,38 @@ func TestInvalid(test *testing.T) {
 	}
 }
 
-func TestNoStartTime(test *testing.T) {
+func TestDurationNoStartTime(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "2m")
 	duration := duration{}
 	duration.load()
-	pod := testPod(nil) // no start time
+	pod := testDurationPod(nil) // no start time
 	shouldReap, _ := duration.ShouldReap(pod)
 	if shouldReap {
 		test.Fail()
 	}
 }
 
-func TestShouldReap(test *testing.T) {
+func TestDurationShouldReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "1m59s")
 	duration := duration{}
 	duration.load()
 	startTime := time.Now().Add(-2 * time.Minute)
-	pod := testPod(&startTime)
+	pod := testDurationPod(&startTime)
 	shouldReap, message := duration.ShouldReap(pod)
 	if !shouldReap || !strings.Contains(message, "has been running") {
 		test.Fail()
 	}
 }
 
-func TestShouldNotReap(test *testing.T) {
+func TestDurationShouldNotReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "2m1s")
 	duration := duration{}
 	duration.load()
 	startTime := time.Now().Add(-2 * time.Minute)
-	pod := testPod(&startTime)
+	pod := testDurationPod(&startTime)
 	shouldReap, _ := duration.ShouldReap(pod)
 	if shouldReap {
 		test.Fail()
