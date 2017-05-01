@@ -8,12 +8,14 @@ import (
 	"fmt"
 )
 
+const ENV_CHAOS_CHANCE = "CHAOS_CHANCE"
+
 type chaos struct {
 	chance float64
 }
 
 func (rule *chaos) load() (bool, error) {
-	value, active := os.LookupEnv("CHAOS_CHANCE")
+	value, active := os.LookupEnv(ENV_CHAOS_CHANCE)
 	if !active {
 		return false, nil
 	}
