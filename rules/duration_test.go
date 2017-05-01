@@ -21,26 +21,35 @@ func testDurationPod(startTime *time.Time) v1.Pod {
 func TestDurationLoad(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "30m")
-	active, err := (&duration{}).load()
-	if !active || err != nil {
-		test.Fail()
+	loaded, err := (&duration{}).load()
+	if !loaded {
+		test.Error("not loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
 func TestDurationFailLoad(test *testing.T) {
 	os.Clearenv()
-	active, err := (&duration{}).load()
-	if active || err != nil {
-		test.Fail()
+	loaded, err := (&duration{}).load()
+	if loaded {
+		test.Error("loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
 func TestDurationInvalid(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "not-a-duration")
-	active, err := (&duration{}).load()
-	if active || err == nil {
-		test.Fail()
+	loaded, err := (&duration{}).load()
+	if loaded {
+		test.Error("loaded")
+	}
+	if err == nil {
+		test.Error("expected error")
 	}
 }
 
@@ -52,7 +61,7 @@ func TestDurationNoStartTime(test *testing.T) {
 	pod := testDurationPod(nil) // no start time
 	shouldReap, _ := duration.ShouldReap(pod)
 	if shouldReap {
-		test.Fail()
+		test.Error("should reap")
 	}
 }
 
@@ -64,8 +73,11 @@ func TestDurationShouldReap(test *testing.T) {
 	startTime := time.Now().Add(-2 * time.Minute)
 	pod := testDurationPod(&startTime)
 	shouldReap, message := duration.ShouldReap(pod)
-	if !shouldReap || !strings.Contains(message, "has been running") {
-		test.Fail()
+	if !shouldReap {
+		test.Error("should not reap")
+	}
+	if !strings.Contains(message, "has been running") {
+		test.Errorf("EXPECTED \"has been running\" CONTAINED IN: %s", message)
 	}
 }
 
@@ -78,6 +90,6 @@ func TestDurationShouldNotReap(test *testing.T) {
 	pod := testDurationPod(&startTime)
 	shouldReap, _ := duration.ShouldReap(pod)
 	if shouldReap {
-		test.Fail()
+		test.Error("should reap")
 	}
 }

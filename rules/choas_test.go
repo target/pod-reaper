@@ -9,26 +9,35 @@ import (
 func TestChaosLoad(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_CHAOS_CHANCE, "0.5")
-	active, err := (&chaos{}).load()
-	if !active || err != nil {
-		test.Fail()
+	loaded, err := (&chaos{}).load()
+	if !loaded {
+		test.Error("not loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
 func TestChaosFailLoad(test *testing.T) {
 	os.Clearenv()
-	active, err := (&chaos{}).load()
-	if active || err != nil {
-		test.Fail()
+	loaded, err := (&chaos{}).load()
+	if loaded {
+		test.Error("loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
 func TestChaosInvalidLoad(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_CHAOS_CHANCE, "not-a-number")
-	active, err := (&chaos{}).load()
-	if active || err == nil {
-		test.Fail()
+	loaded, err := (&chaos{}).load()
+	if loaded {
+		test.Error("loaded")
+	}
+	if err == nil {
+		test.Error("expected error")
 	}
 }
 
@@ -38,8 +47,11 @@ func TestChaosShouldReap(test *testing.T) {
 	chaos := chaos{}
 	chaos.load()
 	shouldReap, message := chaos.ShouldReap(v1.Pod{})
-	if !shouldReap || message != "was flagged for chaos" {
-		test.Fail()
+	if !shouldReap {
+		test.Error("should not reap")
+	}
+	if message != "was flagged for chaos" {
+		test.Errorf("EXPECTED: \"was flagged for chaos\" ACTUAL: %s", message)
 	}
 }
 
@@ -50,6 +62,6 @@ func TestChaosShouldNotReap(test *testing.T) {
 	chaos.load()
 	shouldReap, _ := chaos.ShouldReap(v1.Pod{})
 	if shouldReap {
-		test.Fail()
+		test.Error("should reap")
 	}
 }

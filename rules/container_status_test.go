@@ -39,9 +39,12 @@ func testStatusPod(containerState v1.ContainerState) v1.Pod {
 func TestStatusLoad(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
-	active, err := (&containerStatus{}).load()
-	if !active || err != nil {
-		test.Fail()
+	loaded, err := (&containerStatus{}).load()
+	if !loaded {
+		test.Error("not loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
@@ -51,16 +54,25 @@ func TestStatusLoadMultiple(test *testing.T) {
 	containerStatus := containerStatus{}
 	containerStatus.load()
 	statuses := containerStatus.reapStatuses
-	if len(statuses) != 2 || statuses[0] != "test-status" || statuses[1] != "another-status" {
-		test.Fail()
+	if len(statuses) != 2 {
+		test.Errorf("EXPECTED: 2 ACTUAL: %d", len(statuses))
+	}
+	if statuses[0] != "test-status" {
+		test.Errorf("EXPECTED: \"test-status\" ACTUAL: %s", statuses[0])
+	}
+	if statuses[1] != "another-status" {
+		test.Errorf("EXPECTED: \"another-status\" ACTUAL: %s", statuses[1])
 	}
 }
 
 func TestStatusFailLoad(test *testing.T) {
 	os.Clearenv()
-	active, err := (&containerStatus{}).load()
-	if active || err != nil {
-		test.Fail()
+	loaded, err := (&containerStatus{}).load()
+	if loaded {
+		test.Error("loaded")
+	}
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
 	}
 }
 
@@ -73,8 +85,11 @@ func TestStatusWaiting(test *testing.T) {
 	containerStatus.load()
 	pod := testStatusPod(testWaitContainerState("test-status"))
 	shouldReap, reason := containerStatus.ShouldReap(pod)
-	if !shouldReap || !strings.Contains(reason, "test-status") {
-		test.Fail()
+	if !shouldReap {
+		test.Error("should not reap")
+	}
+	if !strings.Contains(reason, "test-status") {
+		test.Errorf("EXPECTED: \"test-status\" CONTAINED IN: %s", reason)
 	}
 }
 
@@ -85,8 +100,11 @@ func TestStatusTerminated(test *testing.T) {
 	containerStatus.load()
 	pod := testStatusPod(testTerminatedContainerState("another-status"))
 	shouldReap, reason := containerStatus.ShouldReap(pod)
-	if !shouldReap || !strings.Contains(reason, "another-status") {
-		test.Fail()
+	if !shouldReap {
+		test.Error("should not reap")
+	}
+	if !strings.Contains(reason, "another-status") {
+		test.Errorf("EXPECTED: \"another-status\" CONTAINED IN: %s", reason)
 	}
 }
 
@@ -98,6 +116,6 @@ func TestStatusNotPresent(test *testing.T) {
 	pod := testStatusPod(testWaitContainerState("not-present"))
 	shouldReap, _ := containerStatus.ShouldReap(pod)
 	if shouldReap {
-		test.Fail()
+		test.Error("should reap")
 	}
 }
