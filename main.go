@@ -72,7 +72,10 @@ func scytheCycle(clientSet *kubernetes.Clientset, options options) {
 
 func main() {
 	clientSet := clientSet()
-	options := loadOptions()
+	options, err := loadOptions()
+	if err != nil {
+		panic(err)
+	}
 	runForever := options.runDuration == 0
 	cutoff := time.Now().Add(options.runDuration)
 	for {
@@ -83,5 +86,4 @@ func main() {
 		}
 		time.Sleep(options.pollInterval)
 	}
-
 }

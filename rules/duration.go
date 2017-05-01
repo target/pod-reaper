@@ -7,26 +7,27 @@ import (
 	"os"
 )
 
+const ENV_MAX_DURATION = "MAX_DURATION"
+
 // max duration
-type maxDurationRule struct {
+type duration struct {
 	duration time.Duration
 }
 
-func (rule *maxDurationRule) load() bool {
-	value, active := os.LookupEnv("MAX_DURATION")
+func (rule *duration) load() (bool, error) {
+	value, active := os.LookupEnv(ENV_MAX_DURATION)
 	if !active {
-		return false
+		return false, nil
 	}
 	duration, err := time.ParseDuration(value)
 	if err != nil {
-		panic(fmt.Errorf("invalid max duration: %s", err))
+		return false, fmt.Errorf("invalid max duration: %s", err)
 	}
-	fmt.Printf("loading rule: max pod duration %s\n", duration.String())
 	rule.duration = duration
-	return true
+	return true, nil
 }
 
-func (rule *maxDurationRule) ShouldReap(pod v1.Pod) (bool, string) {
+func (rule *duration) ShouldReap(pod v1.Pod) (bool, string) {
 	podStartTime := pod.Status.StartTime
 	if podStartTime == nil {
 		return false, ""

@@ -6,27 +6,30 @@ import (
 )
 
 type Rule interface {
-	load() bool
+	load() (bool, error)
 	ShouldReap(pod v1.Pod) (bool, string)
 }
 
-func LoadRules() []Rule {
+func LoadRules() ([]Rule, error) {
 	// load all possible rules
 	rules := []Rule{
-		&maxDurationRule{},
-		&containerStatusesRule{},
-		&chaosRule{},
+		&duration{},
+		&containerStatus{},
+		&chaos{},
 	}
 	// return only the active rules
 	loadedRules := []Rule{}
 	for _, rule := range rules {
-		if rule.load() {
+		load, err := rule.load()
+		if err != nil {
+			return loadedRules, err
+		} else if load {
 			loadedRules = append(loadedRules, rule)
 		}
 	}
-	//  panic if no rules are loaded
+	// return an err if no rules where loaded
 	if len(loadedRules) == 0 {
-		panic(errors.New("no rules were loaded"))
+		return loadedRules, errors.New("no rules were loaded")
 	}
-	return loadedRules
+	return loadedRules, nil
 }

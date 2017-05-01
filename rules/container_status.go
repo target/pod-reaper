@@ -7,22 +7,21 @@ import (
 	"strings"
 )
 
-type containerStatusesRule struct {
+type containerStatus struct {
 	reapStatuses []string
 }
 
-func (rule *containerStatusesRule) load() bool {
+func (rule *containerStatus) load() (bool, error) {
 	value, active := os.LookupEnv("CONTAINER_STATUSES")
 	if !active {
-		return false
+		return false, nil
 	}
 	statuses := strings.Split(value, ",")
-	fmt.Printf("loading rule: container statuses %s\n", statuses)
 	rule.reapStatuses = statuses
-	return true
+	return true, nil
 }
 
-func (rule *containerStatusesRule) ShouldReap(pod v1.Pod) (bool, string) {
+func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
 	for _, reapStatus := range rule.reapStatuses {
 		for _, containerStatus := range pod.Status.ContainerStatuses {
 			state := containerStatus.State

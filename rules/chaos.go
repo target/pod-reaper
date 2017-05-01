@@ -8,24 +8,23 @@ import (
 	"fmt"
 )
 
-type chaosRule struct {
+type chaos struct {
 	chance float64
 }
 
-func (rule *chaosRule) load() bool {
+func (rule *chaos) load() (bool, error) {
 	value, active := os.LookupEnv("CHAOS_CHANCE")
 	if !active {
-		return false
+		return false, nil
 	}
 	chance, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		panic(fmt.Errorf("invalid chaos chance %s", err))
+		return false, fmt.Errorf("invalid chaos chance %s", err)
 	}
-	fmt.Printf("loading rule: chaos chance %f\n", chance)
 	rule.chance = chance
-	return true
+	return true, nil
 }
 
-func (rule *chaosRule) ShouldReap(pod v1.Pod) (bool, string) {
+func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {
 	return rand.Float64() < rule.chance, "was flagged for chaos"
 }

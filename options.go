@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
@@ -26,77 +25,75 @@ type options struct {
 	rules          []rules.Rule
 }
 
-func environmentVariable(key string, defValue string) string {
-	value, exists := os.LookupEnv(key)
+func namespace() string {
+	return os.Getenv(ENV_NAMESPACE)
+}
+
+func envDuration(key string, defValue string) (time.Duration, error) {
+	envDuration, exists := os.LookupEnv(key)
 	if !exists {
-		return defValue
+		envDuration = defValue
 	}
-	return value
-}
-func environmentVariableSlice(key string) []string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		return []string{}
-	}
-	return strings.Split(value, ",")
-}
-
-func namespace() (namespace string) {
-	namespace = environmentVariable(ENV_NAMESPACE, "")
-	if namespace == "" {
-		fmt.Println("using all namespaces (used if namespace is set to \"\")")
-	} else {
-		fmt.Printf("using namespace \"%s\"\n", namespace)
-	}
-	return
-}
-
-func pollInterval() time.Duration {
-	duration, err := time.ParseDuration(environmentVariable(ENV_POLL_INTERVAL, "1m"))
+	duration, err := time.ParseDuration(envDuration)
 	if err != nil {
-		panic(fmt.Errorf("invalid poll interval: %s", err))
+		return duration, fmt.Errorf("invalid %s: %s", key, err)
 	}
-	fmt.Printf("using poll interval \"%s\"\n", duration.String())
-	return duration
+	return duration, nil
 }
 
-func runDuration() time.Duration {
-	duration, err := time.ParseDuration(environmentVariable(ENV_RUN_DURATION, "0s"))
+func pollInterval() (time.Duration, error) {
+	return envDuration(ENV_POLL_INTERVAL, "1m")
+}
+
+func runDuration() (time.Duration, error) {
+	return envDuration(ENV_RUN_DURATION, "0s")
+}
+
+func labelExclusion() (*labels.Requirement, error) {
+	labelKey, labelKeyExists := os.LookupEnv(ENV_EXCLUDE_LABEL_KEY)
+	labelValue, labelValuesExist := os.LookupEnv(ENV_EXCLUDE_LABEL_VALUES)
+	if labelKeyExists && !labelValuesExist {
+		return nil, fmt.Errorf("specified %s but not %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+	} else if !labelKeyExists && labelValuesExist {
+		return nil, fmt.Errorf("did not specify %s but did specifiy %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+	} else if labelKeyExists && labelValuesExist {
+		return nil, nil
+	}
+	labelValues := strings.Split(labelValue, ",")
+	labelExclusion, err := labels.NewRequirement(labelKey, selection.NotIn, labelValues)
 	if err != nil {
-		panic(fmt.Errorf("invalid run duration: %s", err))
+		return nil, fmt.Errorf("could not create exclusion label: %s", err)
 	}
-	if duration == 0 {
-		fmt.Println("using indefinite run duration (used if run duration is specified to 0s)")
-	} else {
-		fmt.Printf("using run duration \"%s\"\n", duration.String())
-	}
-	return duration
+	return labelExclusion, nil
 }
 
-func labelExclusion() *labels.Requirement {
-	excludeLabelKey := environmentVariable(ENV_EXCLUDE_LABEL_KEY, "")
-	excludeLabelValues := environmentVariableSlice(ENV_EXCLUDE_LABEL_VALUES)
-	if excludeLabelKey == "" && len(excludeLabelValues) != 0 {
-		panic(errors.New("specified exclude label values but did not specifiy exclude label key"))
-	} else if excludeLabelKey != "" && len(excludeLabelValues) == 0 {
-		panic(errors.New("specified exclude label key but did not specify exclude label values"))
-	} else if excludeLabelKey == "" && len(excludeLabelValues) == 0 {
-		return nil
-	}
-	labelExclusion, err := labels.NewRequirement(excludeLabelKey, selection.NotIn, excludeLabelValues)
+func loadOptions() (options, error) {
+	options := options{}
+	// namespace
+	options.namespace = namespace()
+	// poll interval
+	pollInterval, err := pollInterval()
 	if err != nil {
-		panic(fmt.Errorf("could not create exclude label: %s", err))
+		return options, err
 	}
-	fmt.Printf("using label exclusion, ignoring pods with label key: %s and value in %s\n", excludeLabelKey, excludeLabelValues)
-	return labelExclusion
-}
-
-func loadOptions() options {
-	return options{
-		namespace:      namespace(),
-		pollInterval:   pollInterval(),
-		runDuration:    runDuration(),
-		labelExclusion: labelExclusion(),
-		rules:          rules.LoadRules(),
+	options.pollInterval = pollInterval
+	// run duration
+	runDuration, err := runDuration()
+	if err != nil {
+		return options, err
 	}
+	options.runDuration = runDuration
+	// label exclusion
+	labelExclusion, err := labelExclusion()
+	if err != nil {
+		return options, err
+	}
+	options.labelExclusion = labelExclusion
+	// rules
+	loadedRules, err := rules.LoadRules()
+	if err != nil {
+		return options, err
+	}
+	options.rules = loadedRules
+	return options, nil
 }
