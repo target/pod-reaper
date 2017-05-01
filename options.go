@@ -22,7 +22,7 @@ type options struct {
 	pollInterval   time.Duration
 	runDuration    time.Duration
 	labelExclusion *labels.Requirement
-	rules          []rules.Rule
+	rules          rules.Rules
 }
 
 func namespace() string {

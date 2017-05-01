@@ -30,7 +30,7 @@ func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
 			// check both waiting and terminated conditions
 			if (state.Waiting != nil && state.Waiting.Reason == reapStatus) ||
 				(state.Terminated != nil && state.Terminated.Reason == reapStatus) {
-				return true, fmt.Sprintf("has status of %s", reapStatus)
+				return true, fmt.Sprintf("has status %s", reapStatus)
 			}
 		}
 	}
