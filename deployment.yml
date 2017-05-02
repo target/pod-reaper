@@ -7,10 +7,13 @@ spec:
   template:
     metadata:
       labels:
+        # used to exclude pod-reaper so it does not reap itself (optional)
         pod-reaper: disabled
     spec:
+      # this configures three different pod-reapers in one pod, each with their own criteria for reaping; if one
+      # pod-reaper decides to reap a pod, the pod will be deleted
       containers:
-      - name: pod-reaper-chaos-after-2m
+      - name: chaos-after-2min
         image: pod-reaper:latest
         imagePullPolicy: Never
         resources:
@@ -20,20 +23,27 @@ spec:
           requests:
             cpu: 20m
             memory: 20Mi
+        # this configuration looks at all pods in the "default" namespace without the label pod-reaper: disabled and
+        # will delete 30% of found pods thare have been running for more than 2 minutes
         env:
+          # only look for pods in the "default" namespace
           - name: NAMESPACE
             value: default
+          # check pods every 30 seconds
           - name: POLL_INTERVAL
             value: 30s
+          # exclude pods with metadata label pod-reaper: disabled
           - name: EXCLUDE_LABEL_KEY
             value: pod-reaper
           - name: EXCLUDE_LABEL_VALUES
             value: disabled
+          # flag pods that have been alive for more than 2 minutes
           - name: MAX_DURATION
             value: 2m
+          # randomly flag 30% of pods whenever they are checked
           - name: CHAOS_CHANCE
             value: ".3"
-      - name: pod-reaper-chaos
+      - name: choas
         image: pod-reaper:latest
         imagePullPolicy: Never
         resources:
@@ -43,14 +53,30 @@ spec:
           requests:
             cpu: 20m
             memory: 20Mi
+        # this configuration looks at all pods, in every namespace every 15 seconds, and deletes 5% of them.
         env:
-          - name: NAMESPACE
-            value: default
+          # check pods every 15 seconds
           - name: POLL_INTERVAL
-            value: 30s
-          - name: EXCLUDE_LABEL_KEY
-            value: pod-reaper
-          - name: EXCLUDE_LABEL_VALUES
-            value: disabled
+            value: 15s
+          # randomly flag 5% of pods whenever they are checked
           - name: CHAOS_CHANCE
-            value: ".1"
+            value: ".05"
+      - name: error
+        image: pod-reaper:latest
+        imagePullPolicy: Never
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+        # this configuration looks at all pods, in every namespace every 3 minutes and deletes any with a container
+        # with status of Error or ErrImagePull
+        env:
+          # check pods every 15 seconds
+          - name: POLL_INTERVAL
+            value: 3m
+          # randomly flag 5% of pods whenever they are checked
+          - name: CONTAINER_STATUSES
+            value: "Error,ErrImagePull"
