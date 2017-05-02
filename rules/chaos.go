@@ -6,12 +6,19 @@ import (
 	"os"
 	"strconv"
 	"fmt"
+	"time"
 )
 
 const ENV_CHAOS_CHANCE = "CHAOS_CHANCE"
 
 type chaos struct {
 	chance float64
+	random *rand.Rand
+}
+
+func createRand() *rand.Rand {
+	seed := time.Now().UnixNano() // no need for crypto-level randomness
+	return rand.New(rand.NewSource(seed))
 }
 
 func (rule *chaos) load() (bool, error) {
@@ -23,10 +30,11 @@ func (rule *chaos) load() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("invalid chaos chance %s", err)
 	}
+	rule.random = createRand()
 	rule.chance = chance
 	return true, nil
 }
 
 func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {
-	return rand.Float64() < rule.chance, "was flagged for chaos"
+	return rule.random.Float64() < rule.chance, "was flagged for chaos"
 }
