@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # setup the minikube environment (don't need to run every time)
 # minikube start
 # eval $(minikube docker-env)
