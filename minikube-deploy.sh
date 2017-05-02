@@ -8,7 +8,7 @@ kubectl --context=minikube delete --filename deployment.yml
 
 # build the local binary
 go fmt
-go test
+go test . ./rules
 CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 
 # build the docker container

@@ -12,7 +12,7 @@ import (
 func TestLoadNoRules(test *testing.T) {
 	os.Clearenv()
 	rules, err := LoadRules()
-	if len(rules.loadedRules) != 0 {
+	if len(rules.LoadedRules) != 0 {
 		test.Errorf("rules were loaded: %s", rules)
 	}
 	if err == nil {
@@ -37,8 +37,8 @@ func TestLoadRules(test *testing.T) {
 	if err != nil {
 		test.Errorf("ERROR: %s", err)
 	}
-	if len(rules.loadedRules) != 2 {
-		test.Errorf("EXPECTED: 2 ACTUAL: %d", len(rules.loadedRules))
+	if len(rules.LoadedRules) != 2 {
+		test.Errorf("EXPECTED: 2 ACTUAL: %d", len(rules.LoadedRules))
 	}
 }
 

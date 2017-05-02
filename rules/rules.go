@@ -12,7 +12,7 @@ type Rule interface {
 }
 
 type Rules struct {
-	loadedRules []Rule
+	LoadedRules []Rule
 }
 
 func LoadRules() (Rules, error) {
@@ -27,21 +27,21 @@ func LoadRules() (Rules, error) {
 	for _, rule := range rules {
 		load, err := rule.load()
 		if err != nil {
-			return Rules{loadedRules:loadedRules}, err
+			return Rules{LoadedRules:loadedRules}, err
 		} else if load {
 			loadedRules = append(loadedRules, rule)
 		}
 	}
 	// return an err if no rules where loaded
 	if len(loadedRules) == 0 {
-		return Rules{loadedRules:loadedRules}, errors.New("no rules were loaded")
+		return Rules{LoadedRules:loadedRules}, errors.New("no rules were loaded")
 	}
-	return Rules{loadedRules:loadedRules}, nil
+	return Rules{LoadedRules:loadedRules}, nil
 }
 
 func (rules Rules) ShouldReap(pod v1.Pod) (bool, string) {
 	reasons := []string{}
-	for _, rule := range rules.loadedRules {
+	for _, rule := range rules.LoadedRules {
 		reap, reason := rule.ShouldReap(pod)
 		if !reap {
 			return false, ""

@@ -51,7 +51,7 @@ func TestChaosShouldReap(test *testing.T) {
 		test.Error("should not reap")
 	}
 	if message != "was flagged for chaos" {
-		test.Errorf("EXPECTED: \"was flagged for chaos\" ACTUAL: %s", message)
+		test.Errorf("EXPECTED: \"was flagged for chaos\" ACTUAL: \"%s\"", message)
 	}
 }
 

@@ -58,10 +58,10 @@ func TestStatusLoadMultiple(test *testing.T) {
 		test.Errorf("EXPECTED: 2 ACTUAL: %d", len(statuses))
 	}
 	if statuses[0] != "test-status" {
-		test.Errorf("EXPECTED: \"test-status\" ACTUAL: %s", statuses[0])
+		test.Errorf("EXPECTED: \"test-status\" ACTUAL: \"%s\"", statuses[0])
 	}
 	if statuses[1] != "another-status" {
-		test.Errorf("EXPECTED: \"another-status\" ACTUAL: %s", statuses[1])
+		test.Errorf("EXPECTED: \"another-status\" ACTUAL: \"%s\"", statuses[1])
 	}
 }
 

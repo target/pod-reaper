@@ -56,7 +56,7 @@ func labelExclusion() (*labels.Requirement, error) {
 		return nil, fmt.Errorf("specified %s but not %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
 	} else if !labelKeyExists && labelValuesExist {
 		return nil, fmt.Errorf("did not specify %s but did specifiy %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
-	} else if labelKeyExists && labelValuesExist {
+	} else if !labelKeyExists && !labelValuesExist {
 		return nil, nil
 	}
 	labelValues := strings.Split(labelValue, ",")
@@ -67,33 +67,32 @@ func labelExclusion() (*labels.Requirement, error) {
 	return labelExclusion, nil
 }
 
-func loadOptions() (options, error) {
-	options := options{}
+func loadOptions() (options options, err error) {
 	// namespace
 	options.namespace = namespace()
 	// poll interval
 	pollInterval, err := pollInterval()
 	if err != nil {
-		return options, err
+		return
 	}
 	options.pollInterval = pollInterval
 	// run duration
 	runDuration, err := runDuration()
 	if err != nil {
-		return options, err
+		return
 	}
 	options.runDuration = runDuration
 	// label exclusion
 	labelExclusion, err := labelExclusion()
 	if err != nil {
-		return options, err
+		return
 	}
 	options.labelExclusion = labelExclusion
 	// rules
 	loadedRules, err := rules.LoadRules()
 	if err != nil {
-		return options, err
+		return
 	}
 	options.rules = loadedRules
-	return options, nil
+	return
 }
