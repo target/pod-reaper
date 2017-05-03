@@ -79,4 +79,4 @@ spec:
             value: 3m
           # randomly flag 5% of pods whenever they are checked
           - name: CONTAINER_STATUSES
-            value: "Error,ErrImagePull"
+            value: "Error,ErrImagePull,ImagePullBackOff"
