@@ -28,7 +28,7 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	listOptions := v1.ListOptions{}
 	if options.labelExclusion != nil {
 		selector := labels.NewSelector().Add(*options.labelExclusion)
-		listOptions = v1.ListOptions{LabelSelector: selector.String()}
+		listOptions.LabelSelector = selector.String()
 	}
 	podList, err := pods.List(listOptions)
 	if err != nil {
