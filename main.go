@@ -13,11 +13,11 @@ import (
 func clientSet() *kubernetes.Clientset {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	return clientSet
 }
@@ -32,7 +32,7 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	}
 	podList, err := pods.List(listOptions)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	return podList
 }
