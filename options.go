@@ -55,7 +55,7 @@ func labelExclusion() (*labels.Requirement, error) {
 	if labelKeyExists && !labelValuesExist {
 		return nil, fmt.Errorf("specified %s but not %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
 	} else if !labelKeyExists && labelValuesExist {
-		return nil, fmt.Errorf("did not specify %s but did specifiy %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+		return nil, fmt.Errorf("did not specify %s but did specify %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
 	} else if !labelKeyExists && !labelValuesExist {
 		return nil, nil
 	}
