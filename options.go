@@ -71,28 +71,24 @@ func loadOptions() (options options, err error) {
 	// namespace
 	options.namespace = namespace()
 	// poll interval
-	pollInterval, err := pollInterval()
+	options.pollInterval, err = pollInterval()
 	if err != nil {
-		return
+		return options, err
 	}
-	options.pollInterval = pollInterval
 	// run duration
-	runDuration, err := runDuration()
+	options.runDuration, err = runDuration()
 	if err != nil {
-		return
+		return options, err
 	}
-	options.runDuration = runDuration
 	// label exclusion
-	labelExclusion, err := labelExclusion()
+	options.labelExclusion, err = labelExclusion()
 	if err != nil {
-		return
+		return options, err
 	}
-	options.labelExclusion = labelExclusion
 	// rules
-	loadedRules, err := rules.LoadRules()
+	options.rules, err = rules.LoadRules()
 	if err != nil {
-		return
+		return options, err
 	}
-	options.rules = loadedRules
-	return
+	return options, err
 }
