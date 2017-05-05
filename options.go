@@ -2,62 +2,93 @@ package main
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"os"
+	"pod-reaper/rules"
 	"strings"
 	"time"
 )
 
-type Options struct {
-	maxPodDuration    time.Duration
-	pollInterval      time.Duration
-	containerStatuses []string
-	excludeLabelKey   string
-	excludeLabelValue string
-	namespace         string
+// environment variable names
+const ENV_NAMESPACE = "NAMESPACE"
+const ENV_POLL_INTERVAL = "POLL_INTERVAL"
+const ENV_RUN_DURATION = "RUN_DURATION"
+const ENV_EXCLUDE_LABEL_KEY = "EXCLUDE_LABEL_KEY"
+const ENV_EXCLUDE_LABEL_VALUES = "EXCLUDE_LABEL_VALUES"
+
+type options struct {
+	namespace      string
+	pollInterval   time.Duration
+	runDuration    time.Duration
+	labelExclusion *labels.Requirement
+	rules          rules.Rules
 }
 
-func environment(environmentVariable string, defaultValue string) string {
-	env := os.Getenv(environmentVariable)
-	if env == "" {
-		return defaultValue
+func namespace() string {
+	return os.Getenv(ENV_NAMESPACE)
+}
+
+func envDuration(key string, defValue string) (time.Duration, error) {
+	envDuration, exists := os.LookupEnv(key)
+	if !exists {
+		envDuration = defValue
 	}
-	return env
-}
-
-func duration(environmentVariable string, defaultValue string) time.Duration {
-	env := environment(environmentVariable, defaultValue)
-	duration, err := time.ParseDuration(env)
+	duration, err := time.ParseDuration(envDuration)
 	if err != nil {
-		panic(err)
+		return duration, fmt.Errorf("invalid %s: %s", key, err)
 	}
-	return duration
+	return duration, nil
 }
 
-func split(environmentVariable string) []string {
-	env := os.Getenv(environmentVariable)
-	if env == "" {
-		return []string{}
-	}
-	return strings.Split(env, ",")
+func pollInterval() (time.Duration, error) {
+	return envDuration(ENV_POLL_INTERVAL, "1m")
 }
 
-func options() Options {
-	return Options{
-		maxPodDuration:    duration("MAX_POD_DURATION", "2h"),
-		pollInterval:      duration("POLL_INTERVAL", "1m"),
-		containerStatuses: split("CONTAINER_STATUSES"),
-		excludeLabelKey:   environment("EXCLUDE_LABEL_KEY", "pod-reaper"),
-		excludeLabelValue: environment("EXCLUDE_LABEL_VALUE", "disabled"),
-		namespace:         environment("NAMESPACE", ""),
-	}
+func runDuration() (time.Duration, error) {
+	return envDuration(ENV_RUN_DURATION, "0s")
 }
 
-func (options *Options) printOptions() {
-	// write out the used environment variables
-	fmt.Printf("MAX_POD_DURATION: %s\n", options.maxPodDuration)
-	fmt.Printf("POLL_INTERVAL: %s\n", options.pollInterval)
-	fmt.Printf("CONTAINER_STATUSES: %s\n", strings.Join(options.containerStatuses, ", "))
-	fmt.Printf("EXCLUDE_LABEL_KEY: %s\n", options.excludeLabelKey)
-	fmt.Printf("EXCLUDE_LABEL_VALUE: %s\n", options.excludeLabelValue)
-	fmt.Printf("NAMESPACE: %s\n", options.namespace)
+func labelExclusion() (*labels.Requirement, error) {
+	labelKey, labelKeyExists := os.LookupEnv(ENV_EXCLUDE_LABEL_KEY)
+	labelValue, labelValuesExist := os.LookupEnv(ENV_EXCLUDE_LABEL_VALUES)
+	if labelKeyExists && !labelValuesExist {
+		return nil, fmt.Errorf("specified %s but not %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+	} else if !labelKeyExists && labelValuesExist {
+		return nil, fmt.Errorf("did not specify %s but did specify %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+	} else if !labelKeyExists && !labelValuesExist {
+		return nil, nil
+	}
+	labelValues := strings.Split(labelValue, ",")
+	labelExclusion, err := labels.NewRequirement(labelKey, selection.NotIn, labelValues)
+	if err != nil {
+		return nil, fmt.Errorf("could not create exclusion label: %s", err)
+	}
+	return labelExclusion, nil
+}
+
+func loadOptions() (options options, err error) {
+	// namespace
+	options.namespace = namespace()
+	// poll interval
+	options.pollInterval, err = pollInterval()
+	if err != nil {
+		return options, err
+	}
+	// run duration
+	options.runDuration, err = runDuration()
+	if err != nil {
+		return options, err
+	}
+	// label exclusion
+	options.labelExclusion, err = labelExclusion()
+	if err != nil {
+		return options, err
+	}
+	// rules
+	options.rules, err = rules.LoadRules()
+	if err != nil {
+		return options, err
+	}
+	return options, err
 }
