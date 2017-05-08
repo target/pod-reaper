@@ -14,8 +14,8 @@ spec:
       # pod-reaper decides to reap a pod, the pod will be deleted
       containers:
       - name: chaos-after-2min
-        image: pod-reaper:latest
-        imagePullPolicy: Never
+        image: target/pod-reaper:latest
+        imagePullPolicy: Never # set to never for local minikube testing
         resources:
           limits:
             cpu: 30m
@@ -44,8 +44,8 @@ spec:
           - name: CHAOS_CHANCE
             value: ".3"
       - name: choas
-        image: pod-reaper:latest
-        imagePullPolicy: Never
+        image: target/pod-reaper:latest
+        imagePullPolicy: Never # set to never for local minikube testing
         resources:
           limits:
             cpu: 30m
@@ -62,8 +62,8 @@ spec:
           - name: CHAOS_CHANCE
             value: ".05"
       - name: error
-        image: pod-reaper:latest
-        imagePullPolicy: Never
+        image: target/pod-reaper:latest
+        imagePullPolicy: Never # set to never for local minikube testing
         resources:
           limits:
             cpu: 30m
