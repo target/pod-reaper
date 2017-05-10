@@ -13,7 +13,7 @@ CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 
 # build the docker container
 docker rmi pod-reaper
-docker build --tag=pod-reaper .
+docker build --tag=target/pod-reaper:latest .
 
 # create a new deployment
 kubectl --context=minikube apply --filename deployment.yml

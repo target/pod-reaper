@@ -1,5 +1,5 @@
 # pod-reaper: kills pods dead
-A rules based pod killing container. Pod-Reaper was designed to kill pods that meet specific conditions. For a more information on implemented rules
+A rules based pod killing container. Pod-Reaper was designed to kill pods that meet specific conditions. See the "Implemented Rules" section below for details on specific rules.
 
 ## Configuring Pod Reaper
 Pod-Reaper is configurable through environment variables. The pod-reaper specific environment variables are:
@@ -25,21 +25,20 @@ EXCLUDE_LABEL_VALUES=disabled,false
 CHAOS_CHANCE=.001
 ```
 
-
 #### `NAMESPACE`
 Default value: "" (which will look at ALL namespaces)
 
-Controls which kubernetes namespace the pod-reaper is in scope for the pod-reaper. Note that the pod-reaper uses an `InClusterConfig` which makes use of the service account that kubernetes gives to its pods. Only pods (and namespaces) accessible to this service account will be visible to the pod-reaper. 
+Controls which kubernetes namespace the pod-reaper is in scope for the pod-reaper. Note that the pod-reaper uses an `InClusterConfig` which makes use of the service account that kubernetes gives to its pods. Only pods (and namespaces) accessible to this service account will be visible to the pod-reaper.
 
 #### `POLL_INTERVAL`
 Default value: "1m"
 
-Controls how frequently pod-reaper queries kubernetes for pods. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will sleep for this duration between polling for pods. 
+Controls how frequently pod-reaper queries kubernetes for pods. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will sleep for this duration between polling for pods.
 
 #### `RUN_DURATION`
 Default value: "0s" (which corresponds to running indefinitely)
 
-Controls the minimum duration that pod-reaper will run before intentionally exiting. The value of "0s" (or anything equivalent such as the empty string) will be interpreted as an indefinite run duration. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will finish waiting for, and running another reap cycle if the duration elapses during a poll interval: so there will always be exactly one cycle after the run duration has elapsed. 
+Controls the minimum duration that pod-reaper will run before intentionally exiting. The value of "0s" (or anything equivalent such as the empty string) will be interpreted as an indefinite run duration. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will finish waiting for, and running another reap cycle if the duration elapses during a poll interval: so there will always be exactly one cycle after the run duration has elapsed.
 
 #### `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`
 These environment variables are used to build a label selector to exclude pods from reaping. The key must be a properly formed kubernetes label key. Values are a comma-separated (without whitespace) list of kubernetes label values. Setting exactly one of the key or values environment variables will result in an error.
@@ -53,19 +52,21 @@ Flags a pod for reaping based on a random number generator.
 
 Enabled and configured by setting the environment variable `CHAOS_CHANCE` with a floating point value. A random number generator will generate a value in range `[0,1)` and if the the generated value is below the configured chaos chance, the pod will be flagged for reaping.
 
-Example: 
+Example:
 ```
 # every 30 seconds kill 1/100 pods found (based on random chance)
 POLL_INTERVAL=30s
 CHAOS_CHANCE=.01
 ```
 
+Remember that pods can be excluded from reaping if the pod has a label matching the pod-reaper's configuration. See the `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES` section above for more details.
+
 ### Container Status
 Flags a pod for reaping based on the container status.
 
 Enabled and configured by setting the environment variable `CONTAINER_STATUSES` with a coma separated list (no whitespace) of statuses. If a pod is in either a waiting or terminated state with a status in the specified list of status, the pod will be flagged for reaping.
 
-Example: 
+Example:
 ```
 # every 10 minutes, kill all pods with status ImagePullBackOff, ErrImagePull, or Error
 POLL_INTERVAL=10m
@@ -74,7 +75,7 @@ CONTAINER_STATUSES=ImagePullBackOff,ErrImagePull,Error
 
 ### Duration
 Flags a pod for reaping based on the pods current run duration.
- 
+
 Enabled and configured by setting the environment variable `MAX_DURATION` with a valid go-lang `time.duration` format (example: "1h15m30s"). If a pod has been running longer than the specified duration, the pod will be flagged for reaping.
 
 ## Running Pod-Reapers
