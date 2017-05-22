@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/target/pod-reaper/rules"
 	"os"
-	"pod-reaper/rules"
 	"testing"
 	"time"
 )

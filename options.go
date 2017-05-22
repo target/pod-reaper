@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/target/pod-reaper/rules"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"os"
-	"pod-reaper/rules"
 	"strings"
 	"time"
 )
