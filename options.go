@@ -5,9 +5,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"os"
-	"pod-reaper/rules"
 	"strings"
 	"time"
+	"github.com/target/pod-reaper/rules"
 )
 
 // environment variable names

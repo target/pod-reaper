@@ -1,0 +1,19 @@
+package: github.com/target/pod-reaper
+import:
+- package: k8s.io/apimachinery
+  version: c1b2a29e2e9d121b9b7d818cb0d84d8098783236
+  subpackages:
+    - /pkg/labels
+    - /pkg/selection
+- package: k8s.io/client-go
+  version: =v2.0.0
+  subpackages:
+    - kubernetes
+    - pkg/api
+    - pkg/api/unversioned
+    - rest
+testImport:
+- package: k8s.io/client-go
+  version: =v2.0.0
+  subpackages:
+    - pkg/api/unversioned

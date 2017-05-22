@@ -2,9 +2,9 @@ package main
 
 import (
 	"os"
-	"pod-reaper/rules"
 	"testing"
 	"time"
+	"github.com/target/pod-reaper/rules"
 )
 
 func TestDefaultNamespace(test *testing.T) {
