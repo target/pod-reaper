@@ -16,13 +16,16 @@ const ENV_POLL_INTERVAL = "POLL_INTERVAL"
 const ENV_RUN_DURATION = "RUN_DURATION"
 const ENV_EXCLUDE_LABEL_KEY = "EXCLUDE_LABEL_KEY"
 const ENV_EXCLUDE_LABEL_VALUES = "EXCLUDE_LABEL_VALUES"
+const ENV_REQUIRE_LABEL_KEY = "REQUIRE_LABEL_KEY"
+const ENV_REQUIRE_LABEL_VALUES = "REQUIRE_LABEL_VALUES"
 
 type options struct {
-	namespace      string
-	pollInterval   time.Duration
-	runDuration    time.Duration
-	labelExclusion *labels.Requirement
-	rules          rules.Rules
+	namespace        string
+	pollInterval     time.Duration
+	runDuration      time.Duration
+	labelExclusion   *labels.Requirement
+	labelRequirement *labels.Requirement
+	rules            rules.Rules
 }
 
 func namespace() string {
@@ -67,6 +70,24 @@ func labelExclusion() (*labels.Requirement, error) {
 	return labelExclusion, nil
 }
 
+func labelRequirement() (*labels.Requirement, error) {
+	labelKey, labelKeyExists := os.LookupEnv(ENV_REQUIRE_LABEL_KEY)
+	labelValue, labelValuesExist := os.LookupEnv(ENV_REQUIRE_LABEL_VALUES)
+	if labelKeyExists && !labelValuesExist {
+		return nil, fmt.Errorf("specified %s but not %s", ENV_REQUIRE_LABEL_KEY, ENV_REQUIRE_LABEL_VALUES)
+	} else if !labelKeyExists && labelValuesExist {
+		return nil, fmt.Errorf("did not specify %s but did specify %s", ENV_REQUIRE_LABEL_KEY, ENV_REQUIRE_LABEL_VALUES)
+	} else if !labelKeyExists && !labelValuesExist {
+		return nil, nil
+	}
+	labelValues := strings.Split(labelValue, ",")
+	labelRequirement, err := labels.NewRequirement(labelKey, selection.In, labelValues)
+	if err != nil {
+		return nil, fmt.Errorf("could not create requirement label: %s", err)
+	}
+	return labelRequirement, nil
+}
+
 func loadOptions() (options options, err error) {
 	// namespace
 	options.namespace = namespace()
@@ -85,6 +106,12 @@ func loadOptions() (options options, err error) {
 	if err != nil {
 		return options, err
 	}
+	// label requirement
+	options.labelRequirement, err = labelRequirement()
+	if err != nil {
+		return options, err
+	}
+
 	// rules
 	options.rules, err = rules.LoadRules()
 	if err != nil {

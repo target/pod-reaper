@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/target/pod-reaper/rules"
+	"k8s.io/apimachinery/pkg/labels"
 	"os"
 	"testing"
 	"time"
@@ -138,6 +139,68 @@ func TestLabelExclusion(test *testing.T) {
 	if exclusion == nil {
 		test.Error("expected not nil")
 	}
+	expected := "test-key notin (test-value1,test-value2)"
+	actual := labels.NewSelector().Add(*exclusion).String()
+	if expected != actual {
+		test.Errorf("Expected %v != actual %v", expected, actual)
+	}
+}
+
+func TestDefaultLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	requirement, err := labelRequirement()
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
+	}
+	if requirement != nil {
+		test.Error("expected nil")
+	}
+}
+
+func TestKeyOnlyLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	os.Setenv(ENV_REQUIRE_LABEL_KEY, "test-key")
+	_, err := labelRequirement()
+	if err == nil {
+		test.Error("expected error")
+	}
+}
+
+func TestValuesOnlyLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	os.Setenv(ENV_REQUIRE_LABEL_VALUES, "test-value1,test-value2")
+	_, err := labelRequirement()
+	if err == nil {
+		test.Error("expected error")
+	}
+}
+
+func TestInvalidLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	os.Setenv(ENV_REQUIRE_LABEL_KEY, "keys cannot have spaces")
+	os.Setenv(ENV_REQUIRE_LABEL_VALUES, "test-value1,test-value2")
+	_, err := labelRequirement()
+	if err == nil {
+		test.Error("expected error")
+	}
+}
+
+func TestLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	os.Setenv(ENV_REQUIRE_LABEL_KEY, "test-key")
+	os.Setenv(ENV_REQUIRE_LABEL_VALUES, "test-value1,test-value2")
+	requirement, err := labelRequirement()
+	if err != nil {
+		test.Errorf("ERROR: %s", err)
+	}
+	if requirement == nil {
+		test.Error("expected not nil")
+	}
+	expected := "test-key in (test-value1,test-value2)"
+	actual := labels.NewSelector().Add(*requirement).String()
+	if expected != actual {
+		test.Errorf("Expected %v != actual %v", expected, actual)
+	}
 }
 
 func TestOptionsLoadInvalidPollInterval(test *testing.T) {
@@ -156,9 +219,19 @@ func TestOptionsLoadInvalidDuration(test *testing.T) {
 		test.Error("expected error")
 	}
 }
+
 func TestOptionsLoadInvalidLabelExclusion(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_EXCLUDE_LABEL_KEY, "not a valid key")
+	_, err := loadOptions()
+	if err == nil {
+		test.Error("expected error")
+	}
+}
+
+func TestOptionsLoadInvalidLabelRequirement(test *testing.T) {
+	os.Clearenv()
+	os.Setenv(ENV_REQUIRE_LABEL_KEY, "not a valid key")
 	_, err := loadOptions()
 	if err == nil {
 		test.Error("expected error")
