@@ -26,8 +26,14 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	coreClient := clientSet.CoreV1()
 	pods := coreClient.Pods(options.namespace)
 	listOptions := v1.ListOptions{}
-	if options.labelExclusion != nil {
-		selector := labels.NewSelector().Add(*options.labelExclusion)
+	if options.labelExclusion != nil || options.labelRequirement != nil {
+		selector := labels.NewSelector()
+		if options.labelExclusion != nil {
+			selector = selector.Add(*options.labelExclusion)
+		}
+		if options.labelRequirement != nil {
+			selector = selector.Add(*options.labelRequirement)
+		}
 		listOptions.LabelSelector = selector.String()
 	}
 	podList, err := pods.List(listOptions)

@@ -9,13 +9,15 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `RUN_DURATION` how long pod-reaper should run before exiting
 - `EXCLUDE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should exclude
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
+- `REQUIRE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should require
+- `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
 Example environment variables:
 ```
 # pod-reaper configuration
-NAMESAPCE=test
+NAMESPACE=test
 POLL_INTERVAL=30s
 RUN_DURATION=15m
 EXCLUDE_LABEL_KEY=pod-reaper
@@ -43,7 +45,11 @@ Controls the minimum duration that pod-reaper will run before intentionally exit
 #### `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`
 These environment variables are used to build a label selector to exclude pods from reaping. The key must be a properly formed kubernetes label key. Values are a comma-separated (without whitespace) list of kubernetes label values. Setting exactly one of the key or values environment variables will result in an error.
 
-A pod will be exclude from the pod-reaper if the pod has a metadata label has a key corresponding to the pod-reaper's exclude label key, and that same metadata label has a value in the pod-reaper's list of excluded label values. This means that exclusion requires both the pod-reaper and pod to be configured in a compatible way.
+A pod will be excluded from the pod-reaper if the pod has a metadata label has a key corresponding to the pod-reaper's exclude label key, and that same metadata label has a value in the pod-reaper's list of excluded label values. This means that exclusion requires both the pod-reaper and pod to be configured in a compatible way.
+
+#### `REQUIRE_LABEL_KEY` and `REQUIRE_LABEL_VALUES`
+
+These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
 
 ## Implemented Rules
 

@@ -43,7 +43,7 @@ spec:
           # randomly flag 30% of pods whenever they are checked
           - name: CHAOS_CHANCE
             value: ".3"
-      - name: choas
+      - name: chaos
         image: target/pod-reaper:latest
         imagePullPolicy: Never # set to never for local minikube testing
         resources:
