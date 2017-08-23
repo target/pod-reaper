@@ -1,6 +1,8 @@
 # pod-reaper: kills pods dead
 A rules based pod killing container. Pod-Reaper was designed to kill pods that meet specific conditions. See the "Implemented Rules" section below for details on specific rules.
 
+Docker: https://hub.docker.com/r/target/pod-reaper/
+
 ## Configuring Pod Reaper
 Pod-Reaper is configurable through environment variables. The pod-reaper specific environment variables are:
 
