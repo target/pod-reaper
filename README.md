@@ -53,6 +53,9 @@ A pod will be excluded from the pod-reaper if the pod has a metadata label has a
 
 These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
 
+## Logging
+Pod reaper has two logging messages. It logs the pod name and a detailed reason for a reap (determined by the rules) when attempting to reap a pod. It also logs a pod name and an error when a pod fails to be deleted. There are race conditions that may result in pods failing to delete such as the pod terminating on its own or another process/reaper killing the pod.
+
 ## Implemented Rules
 
 ### Chaos Chance
