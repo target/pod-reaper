@@ -45,7 +45,7 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 
 func reap(clientSet *kubernetes.Clientset, pod v1.Pod, reason string) {
 	fmt.Printf("Reaping Pod %s because %s\n", pod.Name, reason)
-	err := clientSet.Core().Pods(pod.Namespace).Delete(pod.Name, nil)
+	err := clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, nil)
 	if err != nil {
 		// log the error, but continue on
 		fmt.Fprintf(os.Stderr, "unable to delete pod %s because %s", pod.Name, err)

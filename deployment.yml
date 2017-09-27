@@ -24,7 +24,7 @@ spec:
             cpu: 20m
             memory: 20Mi
         # this configuration looks at all pods in the "default" namespace without the label pod-reaper: disabled and
-        # will delete 30% of found pods thare have been running for more than 2 minutes
+        # will delete 30% of found pods that have been running for more than 2 minutes
         env:
           # only look for pods in the "default" namespace
           - name: NAMESPACE
