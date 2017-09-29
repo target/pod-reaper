@@ -55,6 +55,8 @@ These environment variables build a label selector that pods must match in order
 
 ## Logging
 Pod reaper has two logging messages. It logs the pod name and a detailed reason for a reap (determined by the rules) when attempting to reap a pod. It also logs a pod name and an error when a pod fails to be deleted. There are race conditions that may result in pods failing to delete such as the pod terminating on its own or another process/reaper killing the pod.
+`Reaping Pod hello-world-42561140c8367 because has been running for 20h43m24.800555528s AND was flagged for chaos`
+The above had two rules: a maximum run duration of 2 minutes, and a chaos chance. The pod met both rules and was reaped.
 
 ## Implemented Rules
 
