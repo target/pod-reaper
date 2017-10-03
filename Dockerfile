@@ -5,7 +5,7 @@ ENV CGO_ENABLED=0 GOOS=linux
 RUN go get github.com/Masterminds/glide
 COPY glide.* ./
 RUN glide install --strip-vendor
-COPY *.go ./
+COPY reaper/*.go ./reaper/
 COPY rules/*.go ./rules/
 RUN go test $(glide nv)
 RUN go build -a -installsuffix go
