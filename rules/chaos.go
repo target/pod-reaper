@@ -1,15 +1,15 @@
 package rules
 
 import (
+	"fmt"
 	"k8s.io/client-go/pkg/api/v1"
 	"math/rand"
 	"os"
 	"strconv"
-	"fmt"
 	"time"
 )
 
-const ENV_CHAOS_CHANCE = "CHAOS_CHANCE"
+const EnvChaosChance = "CHAOS_CHANCE"
 
 type chaos struct {
 	chance float64
@@ -20,7 +20,7 @@ func init() {
 }
 
 func (rule *chaos) load() (bool, error) {
-	value, active := os.LookupEnv(ENV_CHAOS_CHANCE)
+	value, active := os.LookupEnv(EnvChaosChance)
 	if !active {
 		return false, nil
 	}

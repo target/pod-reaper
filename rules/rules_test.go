@@ -22,7 +22,7 @@ func TestLoadNoRules(test *testing.T) {
 
 func TestLoadInvalidRules(test *testing.T) {
 	os.Clearenv()
-	os.Setenv(ENV_CHAOS_CHANCE, "not-a-number")
+	os.Setenv(EnvChaosChance, "not-a-number")
 	_, err := LoadRules()
 	if err == nil {
 		test.Error("expected error")
@@ -60,7 +60,7 @@ func TestShouldReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "1m59s")
 	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
-	os.Setenv(ENV_CHAOS_CHANCE, "1.0") // always
+	os.Setenv(EnvChaosChance, "1.0") // always
 	loaded, _ := LoadRules()
 	shouldReap, message := loaded.ShouldReap(testPod())
 	if !shouldReap {
@@ -81,7 +81,7 @@ func TestShouldNotReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "1m59s")
 	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
-	os.Setenv(ENV_CHAOS_CHANCE, "0.0") // never
+	os.Setenv(EnvChaosChance, "0.0") // never
 	loaded, _ := LoadRules()
 	shouldReap, _ := loaded.ShouldReap(testPod())
 	if shouldReap {

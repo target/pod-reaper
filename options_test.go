@@ -250,7 +250,7 @@ func TestOptionsLoadInvalidRules(test *testing.T) {
 func TestOptionsLoad(test *testing.T) {
 	os.Clearenv()
 	// ensure at least one rule loads
-	os.Setenv(rules.ENV_CHAOS_CHANCE, "1.0")
+	os.Setenv(rules.envChaosChance, "1.0")
 	options, err := loadOptions()
 	if err != nil {
 		test.Errorf("ERROR: %s", err)
