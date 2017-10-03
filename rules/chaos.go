@@ -12,6 +12,8 @@ import (
 
 const envChaosChance = "CHAOS_CHANCE"
 
+var _ Rule = (*chaos)(nil)
+
 type chaos struct {
 	chance float64
 }

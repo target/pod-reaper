@@ -10,7 +10,8 @@ import (
 
 const envMaxDuration = "MAX_DURATION"
 
-// max duration
+var _ Rule = (*duration)(nil)
+
 type duration struct {
 	duration time.Duration
 }

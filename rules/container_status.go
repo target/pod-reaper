@@ -10,6 +10,8 @@ import (
 
 const envContainerStatus = "CONTAINER_STATUSES"
 
+var _ Rule = (*containerStatus)(nil)
+
 type containerStatus struct {
 	reapStatuses []string
 }
