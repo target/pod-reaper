@@ -33,14 +33,14 @@ func TestRules(t *testing.T) {
 	})
 	t.Run("invalid rule", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvChaosChance, "not-a-number")
+		os.Setenv(envChaosChance, "not-a-number")
 		_, err := LoadRules()
 		assert.Error(t, err)
 	})
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "2m")
-		os.Setenv(EnvContainerStatus, "test-status")
+		os.Setenv(envMaxDuration, "2m")
+		os.Setenv(envContainerStatus, "test-status")
 		rules, err := LoadRules()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(rules.LoadedRules))
@@ -50,9 +50,9 @@ func TestRules(t *testing.T) {
 func TestShouldReap(t *testing.T) {
 	t.Run("reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "1m59s")
-		os.Setenv(EnvContainerStatus, "test-status")
-		os.Setenv(EnvChaosChance, "1.0") // always
+		os.Setenv(envMaxDuration, "1m59s")
+		os.Setenv(envContainerStatus, "test-status")
+		os.Setenv(envChaosChance, "1.0") // always
 		loaded, _ := LoadRules()
 		shouldReap, message := loaded.ShouldReap(testPod())
 		assert.True(t, shouldReap)
@@ -62,9 +62,9 @@ func TestShouldReap(t *testing.T) {
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "1m59s")
-		os.Setenv(EnvContainerStatus, "test-status")
-		os.Setenv(EnvChaosChance, "0.0") // never
+		os.Setenv(envMaxDuration, "1m59s")
+		os.Setenv(envContainerStatus, "test-status")
+		os.Setenv(envChaosChance, "0.0") // never
 		loaded, _ := LoadRules()
 		shouldReap, _ := loaded.ShouldReap(testPod())
 		assert.False(t, shouldReap)

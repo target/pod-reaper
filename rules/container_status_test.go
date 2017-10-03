@@ -40,14 +40,14 @@ func testStatusPod(containerState v1.ContainerState) v1.Pod {
 func TestContainerStatusLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvContainerStatus, "test-status")
+		os.Setenv(envContainerStatus, "test-status")
 		loaded, err := (&containerStatus{}).load()
 		assert.NoError(t, err)
 		assert.True(t, loaded)
 	})
 	t.Run("load multiple-statuses", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvContainerStatus, "test-status,another-status")
+		os.Setenv(envContainerStatus, "test-status,another-status")
 		containerStatus := containerStatus{}
 		loaded, err := containerStatus.load()
 		assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestContainerStatusLoad(t *testing.T) {
 func TestContainerStatusShouldReap(t *testing.T) {
 	t.Run("reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvContainerStatus, "test-status,another-status")
+		os.Setenv(envContainerStatus, "test-status,another-status")
 		containerStatus := containerStatus{}
 		containerStatus.load()
 		pod := testStatusPod(testWaitContainerState("another-status"))
@@ -77,7 +77,7 @@ func TestContainerStatusShouldReap(t *testing.T) {
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvContainerStatus, "test-status,another-status")
+		os.Setenv(envContainerStatus, "test-status,another-status")
 		containerStatus := containerStatus{}
 		containerStatus.load()
 		pod := testStatusPod(testWaitContainerState("not-present"))

@@ -156,7 +156,7 @@ func TestOptionsLoad(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		os.Clearenv()
 		// ensure at least one rule loads
-		os.Setenv(rules.EnvChaosChance, "1.0")
+		os.Setenv("CHAOS_CHANCE", "1.0")
 		options, err := loadOptions()
 		assert.NoError(t, err)
 		assert.Equal(t, time.Minute, options.pollInterval)

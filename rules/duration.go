@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const EnvMaxDuration = "MAX_DURATION"
+const envMaxDuration = "MAX_DURATION"
 
 // max duration
 type duration struct {
@@ -15,7 +15,7 @@ type duration struct {
 }
 
 func (rule *duration) load() (bool, error) {
-	value, active := os.LookupEnv(EnvMaxDuration)
+	value, active := os.LookupEnv(envMaxDuration)
 	if !active {
 		return false, nil
 	}

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const EnvChaosChance = "CHAOS_CHANCE"
+const envChaosChance = "CHAOS_CHANCE"
 
 type chaos struct {
 	chance float64
@@ -20,7 +20,7 @@ func init() {
 }
 
 func (rule *chaos) load() (bool, error) {
-	value, active := os.LookupEnv(EnvChaosChance)
+	value, active := os.LookupEnv(envChaosChance)
 	if !active {
 		return false, nil
 	}

@@ -11,7 +11,7 @@ import (
 func TestChaosLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvChaosChance, "0.5")
+		os.Setenv(envChaosChance, "0.5")
 		loaded, err := (&chaos{}).load()
 		assert.NoError(t, err)
 		assert.True(t, loaded)
@@ -24,7 +24,7 @@ func TestChaosLoad(t *testing.T) {
 	})
 	t.Run("invalid chance", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvChaosChance, "not-a-number")
+		os.Setenv(envChaosChance, "not-a-number")
 		loaded, err := (&chaos{}).load()
 		assert.Error(t, err)
 		assert.False(t, loaded)
@@ -34,7 +34,7 @@ func TestChaosLoad(t *testing.T) {
 func TestChaosShouldReap(t *testing.T) {
 	t.Run("reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvChaosChance, "1.0") // always
+		os.Setenv(envChaosChance, "1.0") // always
 		chaos := chaos{}
 		chaos.load()
 		shouldReap, message := chaos.ShouldReap(v1.Pod{})
@@ -43,7 +43,7 @@ func TestChaosShouldReap(t *testing.T) {
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvChaosChance, "0.0") // never
+		os.Setenv(envChaosChance, "0.0") // never
 		chaos := chaos{}
 		chaos.load()
 		shouldReap, _ := chaos.ShouldReap(v1.Pod{})

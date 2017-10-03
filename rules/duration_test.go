@@ -22,14 +22,14 @@ func testDurationPod(startTime *time.Time) v1.Pod {
 func TestDurationLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "30m")
+		os.Setenv(envMaxDuration, "30m")
 		loaded, err := (&duration{}).load()
 		assert.NoError(t, err)
 		assert.True(t, loaded)
 	})
 	t.Run("invalid duration", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "not-a-duration")
+		os.Setenv(envMaxDuration, "not-a-duration")
 		loaded, err := (&duration{}).load()
 		assert.Error(t, err)
 		assert.False(t, loaded)
@@ -45,7 +45,7 @@ func TestDurationLoad(t *testing.T) {
 func TestDurationShouldReap(t *testing.T) {
 	t.Run("no start time", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "2m")
+		os.Setenv(envMaxDuration, "2m")
 		duration := duration{}
 		duration.load()
 		pod := testDurationPod(nil) // no start time can happen during pod creation
@@ -54,7 +54,7 @@ func TestDurationShouldReap(t *testing.T) {
 	})
 	t.Run("reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "1m59s")
+		os.Setenv(envMaxDuration, "1m59s")
 		duration := duration{}
 		duration.load()
 		startTime := time.Now().Add(-2 * time.Minute)
@@ -65,7 +65,7 @@ func TestDurationShouldReap(t *testing.T) {
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv(EnvMaxDuration, "2m1s")
+		os.Setenv(envMaxDuration, "2m1s")
 		duration := duration{}
 		duration.load()
 		startTime := time.Now().Add(-2 * time.Minute)
