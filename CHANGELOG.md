@@ -1,5 +1,9 @@
 # pod-reaper: kills pods dead
 
+### unreleased changed
+- refactored packages for clarity
+- testing refactor for clarity
+
 ### 1.1.0
 - added ability to only reap pods with specified labels
 
