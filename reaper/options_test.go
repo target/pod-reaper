@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/target/pod-reaper/rules"
-
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/labels"
 )

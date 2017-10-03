@@ -2,9 +2,10 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/api/v1"
-	"time"
 	"os"
+	"time"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 const envMaxDuration = "MAX_DURATION"
