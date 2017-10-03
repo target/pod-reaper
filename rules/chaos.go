@@ -2,11 +2,12 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/api/v1"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 const envChaosChance = "CHAOS_CHANCE"

@@ -2,9 +2,10 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/api/v1"
 	"os"
 	"strings"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 const envContainerStatus = "CONTAINER_STATUSES"

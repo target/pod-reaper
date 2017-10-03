@@ -2,8 +2,9 @@ package rules
 
 import (
 	"errors"
-	"k8s.io/client-go/pkg/api/v1"
 	"strings"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 // Rule is an interface defining the two functions needed for pod reaper to use the rule.
