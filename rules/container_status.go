@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-const ENV_CONTAINER_STATUS = "CONTAINER_STATUSES"
+const EnvContainerStatus = "CONTAINER_STATUSES"
 
 type containerStatus struct {
 	reapStatuses []string
 }
 
 func (rule *containerStatus) load() (bool, error) {
-	value, active := os.LookupEnv(ENV_CONTAINER_STATUS)
+	value, active := os.LookupEnv(EnvContainerStatus)
 	if !active {
 		return false, nil
 	}

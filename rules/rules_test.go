@@ -32,7 +32,7 @@ func TestLoadInvalidRules(test *testing.T) {
 func TestLoadRules(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "2m")
-	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
+	os.Setenv(EnvContainerStatus, "test-status")
 	rules, err := LoadRules()
 	if err != nil {
 		test.Errorf("ERROR: %s", err)
@@ -59,7 +59,7 @@ func testPod() v1.Pod {
 func TestShouldReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "1m59s")
-	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
+	os.Setenv(EnvContainerStatus, "test-status")
 	os.Setenv(EnvChaosChance, "1.0") // always
 	loaded, _ := LoadRules()
 	shouldReap, message := loaded.ShouldReap(testPod())
@@ -80,7 +80,7 @@ func TestShouldReap(test *testing.T) {
 func TestShouldNotReap(test *testing.T) {
 	os.Clearenv()
 	os.Setenv(ENV_MAX_DURATION, "1m59s")
-	os.Setenv(ENV_CONTAINER_STATUS, "test-status")
+	os.Setenv(EnvContainerStatus, "test-status")
 	os.Setenv(EnvChaosChance, "0.0") // never
 	loaded, _ := LoadRules()
 	shouldReap, _ := loaded.ShouldReap(testPod())

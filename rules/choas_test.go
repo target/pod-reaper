@@ -39,7 +39,7 @@ func TestChaosShouldReap(t *testing.T) {
 		chaos.load()
 		shouldReap, message := chaos.ShouldReap(v1.Pod{})
 		assert.True(t, shouldReap)
-		assert.Equal(t, "was falgged for chaos", message)
+		assert.Equal(t, "was flagged for chaos", message)
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
