@@ -1,10 +1,11 @@
 package rules
 
 import (
-	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/pkg/api/v1"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func testWaitContainerState(reason string) v1.ContainerState {
