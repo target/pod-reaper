@@ -3,51 +3,19 @@ package rules
 import (
 	"os"
 	"testing"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/api/unversioned"
 	"time"
-	"strings"
+
+	"github.com/stretchr/testify/assert"
+	"k8s.io/client-go/pkg/api/unversioned"
+	"k8s.io/client-go/pkg/api/v1"
 )
-
-func TestLoadNoRules(test *testing.T) {
-	os.Clearenv()
-	rules, err := LoadRules()
-	if len(rules.LoadedRules) != 0 {
-		test.Errorf("rules were loaded: %s", rules)
-	}
-	if err == nil {
-		test.Error("expected error")
-	}
-}
-
-func TestLoadInvalidRules(test *testing.T) {
-	os.Clearenv()
-	os.Setenv(EnvChaosChance, "not-a-number")
-	_, err := LoadRules()
-	if err == nil {
-		test.Error("expected error")
-	}
-}
-
-func TestLoadRules(test *testing.T) {
-	os.Clearenv()
-	os.Setenv(ENV_MAX_DURATION, "2m")
-	os.Setenv(EnvContainerStatus, "test-status")
-	rules, err := LoadRules()
-	if err != nil {
-		test.Errorf("ERROR: %s", err)
-	}
-	if len(rules.LoadedRules) != 2 {
-		test.Errorf("EXPECTED: 2 ACTUAL: %d", len(rules.LoadedRules))
-	}
-}
 
 func testPod() v1.Pod {
 	startTime := unversioned.NewTime(time.Now().Add(-2 * time.Minute))
 	return v1.Pod{
-		Status:v1.PodStatus{
+		Status: v1.PodStatus{
 			StartTime: &startTime,
-			ContainerStatuses:[]v1.ContainerStatus{
+			ContainerStatuses: []v1.ContainerStatus{
 				{
 					State: testTerminatedContainerState("test-status"),
 				},
@@ -56,35 +24,49 @@ func testPod() v1.Pod {
 	}
 }
 
-func TestShouldReap(test *testing.T) {
-	os.Clearenv()
-	os.Setenv(ENV_MAX_DURATION, "1m59s")
-	os.Setenv(EnvContainerStatus, "test-status")
-	os.Setenv(EnvChaosChance, "1.0") // always
-	loaded, _ := LoadRules()
-	shouldReap, message := loaded.ShouldReap(testPod())
-	if !shouldReap {
-		test.Error("should not reap")
-	}
-	if !strings.Contains(message, "was flagged for chaos") {
-		test.Errorf("EXPECTED \"was flagged for chaos\" CONTAINED IN %s", message)
-	}
-	if !strings.Contains(message, "has status test-status") {
-		test.Errorf("EXPECTED \"has status test-status\" CONTAINED IN %s", message)
-	}
-	if !strings.Contains(message, "has been running") {
-		test.Errorf("EXPECTED \"has been running\" CONTAINED IN %s", message)
-	}
+func TestRules(t *testing.T) {
+	t.Run("no rules", func(t *testing.T) {
+		os.Clearenv()
+		rules, err := LoadRules()
+		assert.Equal(t, 0, len(rules.LoadedRules))
+		assert.Error(t, err)
+	})
+	t.Run("invalid rule", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(EnvChaosChance, "not-a-number")
+		_, err := LoadRules()
+		assert.Error(t, err)
+	})
+	t.Run("load", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(EnvMaxDuration, "2m")
+		os.Setenv(EnvContainerStatus, "test-status")
+		rules, err := LoadRules()
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(rules.LoadedRules))
+	})
 }
 
-func TestShouldNotReap(test *testing.T) {
-	os.Clearenv()
-	os.Setenv(ENV_MAX_DURATION, "1m59s")
-	os.Setenv(EnvContainerStatus, "test-status")
-	os.Setenv(EnvChaosChance, "0.0") // never
-	loaded, _ := LoadRules()
-	shouldReap, _ := loaded.ShouldReap(testPod())
-	if shouldReap {
-		test.Error("should reap")
-	}
+func TestShouldReap(t *testing.T) {
+	t.Run("reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(EnvMaxDuration, "1m59s")
+		os.Setenv(EnvContainerStatus, "test-status")
+		os.Setenv(EnvChaosChance, "1.0") // always
+		loaded, _ := LoadRules()
+		shouldReap, message := loaded.ShouldReap(testPod())
+		assert.True(t, shouldReap)
+		assert.Regexp(t, ".*was flagged for chaos.*", message)
+		assert.Regexp(t, ".*has status test-status.*", message)
+		assert.Regexp(t, ".*has been running.*", message)
+	})
+	t.Run("no reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(EnvMaxDuration, "1m59s")
+		os.Setenv(EnvContainerStatus, "test-status")
+		os.Setenv(EnvChaosChance, "0.0") // never
+		loaded, _ := LoadRules()
+		shouldReap, _ := loaded.ShouldReap(testPod())
+		assert.False(t, shouldReap)
+	})
 }
