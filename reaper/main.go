@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/robfig/cron"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
@@ -70,12 +71,23 @@ func main() {
 		panic(err)
 	}
 	runForever := options.runDuration == 0
-	cutoff := time.Now().Add(options.runDuration)
-	for {
+
+	schedule := cron.New()
+	err = schedule.AddFunc(options.schedule, func() {
 		scytheCycle(clientSet, options)
-		if !runForever && time.Now().After(cutoff) {
-			os.Exit(0) // successful exit
-		}
-		time.Sleep(options.pollInterval)
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unable to create cron schedule: '%s' %s", options.schedule, err.Error()))
 	}
+
+	schedule.Start()
+
+	if runForever {
+		select {} // should only fail if no routine can make progress
+	} else {
+		time.Sleep(options.runDuration)
+		schedule.Stop()
+	}
+
 }

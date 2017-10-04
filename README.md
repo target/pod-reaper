@@ -7,7 +7,7 @@ Docker: https://hub.docker.com/r/target/pod-reaper/
 Pod-Reaper is configurable through environment variables. The pod-reaper specific environment variables are:
 
 - `NAMESPACE` the kubernetes namespace where pod-reaper should look for pods
-- `POLL_INTERVAL` how often pod-reaper should look for pods
+- `SCHEDULE` schedule for when pod-reaper should look for pods to reap
 - `RUN_DURATION` how long pod-reaper should run before exiting
 - `EXCLUDE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should exclude
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
@@ -20,7 +20,7 @@ Example environment variables:
 ```
 # pod-reaper configuration
 NAMESPACE=test
-POLL_INTERVAL=30s
+SCHEDULE=@every 30s
 RUN_DURATION=15m
 EXCLUDE_LABEL_KEY=pod-reaper
 EXCLUDE_LABEL_VALUES=disabled,false
@@ -34,10 +34,10 @@ Default value: "" (which will look at ALL namespaces)
 
 Controls which kubernetes namespace the pod-reaper is in scope for the pod-reaper. Note that the pod-reaper uses an `InClusterConfig` which makes use of the service account that kubernetes gives to its pods. Only pods (and namespaces) accessible to this service account will be visible to the pod-reaper.
 
-#### `POLL_INTERVAL`
-Default value: "1m"
+#### `SCHEDULE`
+Default value: "@every 1m"
 
-Controls how frequently pod-reaper queries kubernetes for pods. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will sleep for this duration between polling for pods.
+Controls how frequently pod-reaper queries kubernetes for pods. The format follows the upstream cron library https://godoc.org/github.com/robfig/cron. For most use cases, the interval format `@every 1h2m3s` is sufficient. But more complex use cases can make use of the `* * * * * *` notation.
 
 #### `RUN_DURATION`
 Default value: "0s" (which corresponds to running indefinitely)
@@ -63,7 +63,7 @@ Enabled and configured by setting the environment variable `CHAOS_CHANCE` with a
 Example:
 ```
 # every 30 seconds kill 1/100 pods found (based on random chance)
-POLL_INTERVAL=30s
+SCHEDULE=@every 30s
 CHAOS_CHANCE=.01
 ```
 
@@ -77,7 +77,7 @@ Enabled and configured by setting the environment variable `CONTAINER_STATUSES` 
 Example:
 ```
 # every 10 minutes, kill all pods with status ImagePullBackOff, ErrImagePull, or Error
-POLL_INTERVAL=10m
+SCHEDULE=@every 10m
 CONTAINER_STATUSES=ImagePullBackOff,ErrImagePull,Error
 ```
 
@@ -105,7 +105,7 @@ Multiple pod-reapers can be easily managed and configured with kubernetes deploy
 You can run run pod-reaper as a one time, limited duration container by usable the `RUN_DURATION` environment variable. An example use case might be wanting to introduce a high degree of chaos into your kubernetes environment for a short duration:
 ```
 # 30% chaos chance every 1 minute for 15 minutes
-POLL_INTERVAL=1m
+SCHEDULE=@every 1m
 RUN_DURATION=15m
 CHAOS_CHANCE=.3
 ```

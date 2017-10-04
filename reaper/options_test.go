@@ -23,25 +23,11 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, "test-namespace", namespace)
 		})
 	})
-	t.Run("poll interval", func(t *testing.T) {
+	t.Run("schedule", func(t *testing.T) {
 		t.Run("default", func(t *testing.T) {
 			os.Clearenv()
-			duration, err := pollInterval()
-			assert.NoError(t, err)
-			assert.Equal(t, time.Minute, duration)
-		})
-		t.Run("invalid", func(t *testing.T) {
-			os.Clearenv()
-			os.Setenv(envPollInterval, "not-a-duration")
-			_, err := pollInterval()
-			assert.Error(t, err)
-		})
-		t.Run("valid", func(t *testing.T) {
-			os.Clearenv()
-			os.Setenv(envPollInterval, "1m58s")
-			duration, err := pollInterval()
-			assert.NoError(t, err)
-			assert.Equal(t, 2*time.Minute-2*time.Second, duration)
+			schedule := schedule()
+			assert.Equal(t, "@every 1m", schedule)
 		})
 	})
 	t.Run("run duration", func(t *testing.T) {
@@ -157,7 +143,7 @@ func TestOptionsLoad(t *testing.T) {
 		os.Setenv("CHAOS_CHANCE", "1.0")
 		options, err := loadOptions()
 		assert.NoError(t, err)
-		assert.Equal(t, time.Minute, options.pollInterval)
+		assert.Equal(t, "@every 1m", options.schedule)
 		assert.Equal(t, 0*time.Second, options.runDuration)
 		assert.Nil(t, options.labelExclusion)
 		assert.Nil(t, options.labelRequirement)

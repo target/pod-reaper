@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/target/pod-reaper/rules"
+
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
 
 // environment variable names
 const envNamespace = "NAMESPACE"
-const envPollInterval = "POLL_INTERVAL"
+const envScheduleCron = "SCHEDULE"
 const envRunDuration = "RUN_DURATION"
 const envExcludeLabelKey = "EXCLUDE_LABEL_KEY"
 const envExcludeLabelValues = "EXCLUDE_LABEL_VALUES"
@@ -22,7 +23,7 @@ const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 
 type options struct {
 	namespace        string
-	pollInterval     time.Duration
+	schedule         string
 	runDuration      time.Duration
 	labelExclusion   *labels.Requirement
 	labelRequirement *labels.Requirement
@@ -45,8 +46,12 @@ func envDuration(key string, defValue string) (time.Duration, error) {
 	return duration, nil
 }
 
-func pollInterval() (time.Duration, error) {
-	return envDuration(envPollInterval, "1m")
+func schedule() string {
+	schedule, exists := os.LookupEnv(envScheduleCron)
+	if !exists {
+		schedule = "@every 1m"
+	}
+	return schedule
 }
 
 func runDuration() (time.Duration, error) {
@@ -90,24 +95,16 @@ func labelRequirement() (*labels.Requirement, error) {
 }
 
 func loadOptions() (options options, err error) {
-	// namespace
 	options.namespace = namespace()
-	// poll interval
-	options.pollInterval, err = pollInterval()
-	if err != nil {
-		return options, err
-	}
-	// run duration
+	options.schedule = schedule()
 	options.runDuration, err = runDuration()
 	if err != nil {
 		return options, err
 	}
-	// label exclusion
 	options.labelExclusion, err = labelExclusion()
 	if err != nil {
 		return options, err
 	}
-	// label requirement
 	options.labelRequirement, err = labelRequirement()
 	if err != nil {
 		return options, err
