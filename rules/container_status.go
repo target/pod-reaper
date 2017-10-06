@@ -2,19 +2,22 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/api/v1"
 	"os"
 	"strings"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
-const ENV_CONTAINER_STATUS = "CONTAINER_STATUSES"
+const envContainerStatus = "CONTAINER_STATUSES"
+
+var _ Rule = (*containerStatus)(nil)
 
 type containerStatus struct {
 	reapStatuses []string
 }
 
 func (rule *containerStatus) load() (bool, error) {
-	value, active := os.LookupEnv(ENV_CONTAINER_STATUS)
+	value, active := os.LookupEnv(envContainerStatus)
 	if !active {
 		return false, nil
 	}

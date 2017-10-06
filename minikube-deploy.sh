@@ -7,9 +7,10 @@
 kubectl --context=minikube delete --filename deployment.yml --ignore-not-found
 
 # build the local binary
-go fmt
-go test . ./rules
-CGO_ENABLED=0 GOOS=linux GOARCH=amd go build -a -installsuffix cgo
+go fmt ./reaper ./rules
+go test ./reaper ./rules
+golint ./reaper ./rules
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pod-reaper -a -installsuffix cgo ./reaper
 
 # build the docker container
 docker rmi pod-reaper

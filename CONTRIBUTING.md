@@ -14,4 +14,5 @@ See [here](./docs/getting_started_git.md) for more information.
 1. Validate you changes meet your desired use case
 1. Ensure documentation has been updated
 1. Format you changes `go fmt`
+1. Run a go linter with `golint` (https://github.com/golang/lint)
 1. Open a pull-request: you can expect discussion

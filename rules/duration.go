@@ -2,20 +2,22 @@ package rules
 
 import (
 	"fmt"
-	"k8s.io/client-go/pkg/api/v1"
-	"time"
 	"os"
+	"time"
+
+	"k8s.io/client-go/pkg/api/v1"
 )
 
-const ENV_MAX_DURATION = "MAX_DURATION"
+const envMaxDuration = "MAX_DURATION"
 
-// max duration
+var _ Rule = (*duration)(nil)
+
 type duration struct {
 	duration time.Duration
 }
 
 func (rule *duration) load() (bool, error) {
-	value, active := os.LookupEnv(ENV_MAX_DURATION)
+	value, active := os.LookupEnv(envMaxDuration)
 	if !active {
 		return false, nil
 	}

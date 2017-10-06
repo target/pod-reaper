@@ -2,22 +2,23 @@ package main
 
 import (
 	"fmt"
-	"github.com/target/pod-reaper/rules"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/target/pod-reaper/rules"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 )
 
 // environment variable names
-const ENV_NAMESPACE = "NAMESPACE"
-const ENV_POLL_INTERVAL = "POLL_INTERVAL"
-const ENV_RUN_DURATION = "RUN_DURATION"
-const ENV_EXCLUDE_LABEL_KEY = "EXCLUDE_LABEL_KEY"
-const ENV_EXCLUDE_LABEL_VALUES = "EXCLUDE_LABEL_VALUES"
-const ENV_REQUIRE_LABEL_KEY = "REQUIRE_LABEL_KEY"
-const ENV_REQUIRE_LABEL_VALUES = "REQUIRE_LABEL_VALUES"
+const envNamespace = "NAMESPACE"
+const envPollInterval = "POLL_INTERVAL"
+const envRunDuration = "RUN_DURATION"
+const envExcludeLabelKey = "EXCLUDE_LABEL_KEY"
+const envExcludeLabelValues = "EXCLUDE_LABEL_VALUES"
+const envRequireLabelKey = "REQUIRE_LABEL_KEY"
+const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 
 type options struct {
 	namespace        string
@@ -29,7 +30,7 @@ type options struct {
 }
 
 func namespace() string {
-	return os.Getenv(ENV_NAMESPACE)
+	return os.Getenv(envNamespace)
 }
 
 func envDuration(key string, defValue string) (time.Duration, error) {
@@ -45,20 +46,20 @@ func envDuration(key string, defValue string) (time.Duration, error) {
 }
 
 func pollInterval() (time.Duration, error) {
-	return envDuration(ENV_POLL_INTERVAL, "1m")
+	return envDuration(envPollInterval, "1m")
 }
 
 func runDuration() (time.Duration, error) {
-	return envDuration(ENV_RUN_DURATION, "0s")
+	return envDuration(envRunDuration, "0s")
 }
 
 func labelExclusion() (*labels.Requirement, error) {
-	labelKey, labelKeyExists := os.LookupEnv(ENV_EXCLUDE_LABEL_KEY)
-	labelValue, labelValuesExist := os.LookupEnv(ENV_EXCLUDE_LABEL_VALUES)
+	labelKey, labelKeyExists := os.LookupEnv(envExcludeLabelKey)
+	labelValue, labelValuesExist := os.LookupEnv(envExcludeLabelValues)
 	if labelKeyExists && !labelValuesExist {
-		return nil, fmt.Errorf("specified %s but not %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+		return nil, fmt.Errorf("specified %s but not %s", envExcludeLabelKey, envExcludeLabelValues)
 	} else if !labelKeyExists && labelValuesExist {
-		return nil, fmt.Errorf("did not specify %s but did specify %s", ENV_EXCLUDE_LABEL_KEY, ENV_EXCLUDE_LABEL_VALUES)
+		return nil, fmt.Errorf("did not specify %s but did specify %s", envExcludeLabelKey, envExcludeLabelValues)
 	} else if !labelKeyExists && !labelValuesExist {
 		return nil, nil
 	}
@@ -71,12 +72,12 @@ func labelExclusion() (*labels.Requirement, error) {
 }
 
 func labelRequirement() (*labels.Requirement, error) {
-	labelKey, labelKeyExists := os.LookupEnv(ENV_REQUIRE_LABEL_KEY)
-	labelValue, labelValuesExist := os.LookupEnv(ENV_REQUIRE_LABEL_VALUES)
+	labelKey, labelKeyExists := os.LookupEnv(envRequireLabelKey)
+	labelValue, labelValuesExist := os.LookupEnv(envRequireLabelValues)
 	if labelKeyExists && !labelValuesExist {
-		return nil, fmt.Errorf("specified %s but not %s", ENV_REQUIRE_LABEL_KEY, ENV_REQUIRE_LABEL_VALUES)
+		return nil, fmt.Errorf("specified %s but not %s", envRequireLabelKey, envRequireLabelValues)
 	} else if !labelKeyExists && labelValuesExist {
-		return nil, fmt.Errorf("did not specify %s but did specify %s", ENV_REQUIRE_LABEL_KEY, ENV_REQUIRE_LABEL_VALUES)
+		return nil, fmt.Errorf("did not specify %s but did specify %s", envRequireLabelKey, envRequireLabelValues)
 	} else if !labelKeyExists && !labelValuesExist {
 		return nil, nil
 	}
