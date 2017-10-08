@@ -1,6 +1,9 @@
 # pod-reaper: kills pods dead
 
-### unreleased changed
+# 2.0.0
+- removed `POLL_INTERVAL` environment variable in favor of cron schedule
+- added `SCHEDULE` environment variable to control when pods are inspected for reaping
+  - makes use of https://godoc.org/github.com/robfig/cron
 - refactored packages for clarity
 - testing refactor for clarity
 

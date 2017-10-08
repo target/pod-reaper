@@ -29,9 +29,9 @@ spec:
           # only look for pods in the "default" namespace
           - name: NAMESPACE
             value: default
-          # check pods every 30 seconds
-          - name: POLL_INTERVAL
-            value: 30s
+          # run every 30 seconds
+          - name: SCHEDULE
+            value: "@every 30s"
           # exclude pods with metadata label pod-reaper: disabled
           - name: EXCLUDE_LABEL_KEY
             value: pod-reaper
@@ -56,8 +56,8 @@ spec:
         # this configuration looks at all pods, in every namespace every 15 seconds, and deletes 5% of them.
         env:
           # check pods every 15 seconds
-          - name: POLL_INTERVAL
-            value: 15s
+          - name: SCHEDULE
+            value: "0/15 * * * * *"
           # randomly flag 5% of pods whenever they are checked
           - name: CHAOS_CHANCE
             value: ".05"
@@ -74,9 +74,9 @@ spec:
         # this configuration looks at all pods, in every namespace every 3 minutes and deletes any with a container
         # with status of Error or ErrImagePull
         env:
-          # check pods every 15 seconds
-          - name: POLL_INTERVAL
-            value: 3m
+          # check pods every 3 min
+          - name: SCHEDULE
+            value: "@every 3m"
           # randomly flag 5% of pods whenever they are checked
           - name: CONTAINER_STATUSES
             value: "Error,ErrImagePull,ImagePullBackOff"
