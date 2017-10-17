@@ -42,7 +42,23 @@ Controls how frequently pod-reaper queries kubernetes for pods. The format follo
 #### `RUN_DURATION`
 Default value: "0s" (which corresponds to running indefinitely)
 
-Controls the minimum duration that pod-reaper will run before intentionally exiting. The value of "0s" (or anything equivalent such as the empty string) will be interpreted as an indefinite run duration. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will finish waiting for, and running another reap cycle if the duration elapses during a poll interval: so there will always be exactly one cycle after the run duration has elapsed.
+Controls the minimum duration that pod-reaper will run before intentionally exiting. The value of "0s" (or anything equivalent such as the empty string) will be interpreted as an indefinite run duration. The format follows the go-lang `time.duration` format (example: "1h15m30s"). Pod-Reaper will not wait for reap-cycles to finishing waiting and will exit immediately (with exit code 0) after the duration has elapsed.
+
+Warnings about `RUN_DURATION`
+- pod-rescheduling: if the reaper completes, even successfully, it may be restarted depending on the pod-spec.
+- self-reaping: the pod-reaper can reap itself if configured to do so, this can cause the reaper to not run for the expected duration.
+
+Recommendations:
+
+One time run:
+- create a pod spec and apply it to kubernetes
+- make the pod spec has `restartPolicy: Never`
+- add an exclusion label and key using `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`
+- make the pod spec for the reaper match an excluded label and key to prevent it from reaping itself
+
+Sustained running:
+- do not use `RUN_DURATION`
+- manage the pod reaper via a deployment
 
 #### `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`
 These environment variables are used to build a label selector to exclude pods from reaping. The key must be a properly formed kubernetes label key. Values are a comma-separated (without whitespace) list of kubernetes label values. Setting exactly one of the key or values environment variables will result in an error.
