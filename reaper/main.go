@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/robfig/cron"
+	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
@@ -45,26 +45,34 @@ func getPods(clientSet *kubernetes.Clientset, options options) *v1.PodList {
 	return podList
 }
 
-func reap(clientSet *kubernetes.Clientset, pod v1.Pod, reason string) {
-	fmt.Printf("Reaping Pod %s because %s\n", pod.Name, reason)
+func reap(clientSet *kubernetes.Clientset, pod v1.Pod, reasons []string) {
+	logrus.WithFields(logrus.Fields{
+		"pod":     pod.Name,
+		"reasons": reasons,
+	}).Info("reaping pod")
 	err := clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, nil)
 	if err != nil {
-		// log the error, but continue on
-		fmt.Fprintf(os.Stderr, "unable to delete pod %s because %s", pod.Name, err)
+		// log the error, but continue on: often times something else has already deleted the pod
+		logrus.WithFields(logrus.Fields{
+			"pod":    pod.Name,
+			"reason": err.Error(),
+		}).Warn("failed to reap pod")
 	}
 }
 
 func scytheCycle(clientSet *kubernetes.Clientset, options options) {
+	logrus.Info("executing reap cycle")
 	pods := getPods(clientSet, options)
 	for _, pod := range pods.Items {
-		shouldReap, reason := options.rules.ShouldReap(pod)
+		shouldReap, reasons := options.rules.ShouldReap(pod)
 		if shouldReap {
-			reap(clientSet, pod, reason)
+			reap(clientSet, pod, reasons)
 		}
 	}
 }
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 	clientSet := clientSet()
 	options, err := loadOptions()
 	if err != nil {
@@ -89,5 +97,5 @@ func main() {
 		time.Sleep(options.runDuration)
 		schedule.Stop()
 	}
-
+	logrus.Info("pod reaper is exiting")
 }

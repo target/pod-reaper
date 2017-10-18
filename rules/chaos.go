@@ -22,17 +22,17 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func (rule *chaos) load() (bool, error) {
+func (rule *chaos) load() (bool, string, error) {
 	value, active := os.LookupEnv(envChaosChance)
 	if !active {
-		return false, nil
+		return false, "", nil
 	}
 	chance, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return false, fmt.Errorf("invalid chaos chance %s", err)
+		return false, "", fmt.Errorf("invalid chaos chance %s", err)
 	}
 	rule.chance = chance
-	return true, nil
+	return true, fmt.Sprintf("chaos chance %s", value), nil
 }
 
 func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {

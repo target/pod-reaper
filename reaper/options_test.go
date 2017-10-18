@@ -5,9 +5,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/labels"
 )
+
+func init() {
+	logrus.SetOutput(ioutil.Discard)
+}
 
 func TestOptions(t *testing.T) {
 	t.Run("namespace", func(t *testing.T) {

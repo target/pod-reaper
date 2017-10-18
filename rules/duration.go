@@ -16,17 +16,17 @@ type duration struct {
 	duration time.Duration
 }
 
-func (rule *duration) load() (bool, error) {
+func (rule *duration) load() (bool, string, error) {
 	value, active := os.LookupEnv(envMaxDuration)
 	if !active {
-		return false, nil
+		return false, "", nil
 	}
 	duration, err := time.ParseDuration(value)
 	if err != nil {
-		return false, fmt.Errorf("invalid max duration: %s", err)
+		return false, "", fmt.Errorf("invalid max duration: %s", err)
 	}
 	rule.duration = duration
-	return true, nil
+	return true, fmt.Sprintf("maximum run duration %s", value), nil
 }
 
 func (rule *duration) ShouldReap(pod v1.Pod) (bool, string) {

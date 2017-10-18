@@ -41,16 +41,18 @@ func TestContainerStatusLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envContainerStatus, "test-status")
-		loaded, err := (&containerStatus{}).load()
+		loaded, message, err := (&containerStatus{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "container status in [test-status]", message)
 		assert.True(t, loaded)
 	})
 	t.Run("load multiple-statuses", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envContainerStatus, "test-status,another-status")
 		containerStatus := containerStatus{}
-		loaded, err := containerStatus.load()
+		loaded, message, err := containerStatus.load()
 		assert.NoError(t, err)
+		assert.Equal(t, "container status in [test-status,another-status]", message)
 		assert.True(t, loaded)
 		assert.Equal(t, 2, len(containerStatus.reapStatuses))
 		assert.Equal(t, "test-status", containerStatus.reapStatuses[0])
@@ -58,8 +60,9 @@ func TestContainerStatusLoad(t *testing.T) {
 	})
 	t.Run("no load", func(t *testing.T) {
 		os.Clearenv()
-		loaded, err := (&containerStatus{}).load()
+		loaded, message, err := (&containerStatus{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
 }
