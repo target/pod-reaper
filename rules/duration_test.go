@@ -23,21 +23,24 @@ func TestDurationLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envMaxDuration, "30m")
-		loaded, err := (&duration{}).load()
+		loaded, message, err := (&duration{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "maximum run duration 30m", message)
 		assert.True(t, loaded)
 	})
 	t.Run("invalid duration", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envMaxDuration, "not-a-duration")
-		loaded, err := (&duration{}).load()
+		loaded, message, err := (&duration{}).load()
 		assert.Error(t, err)
+		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
 	t.Run("no load", func(t *testing.T) {
 		os.Clearenv()
-		loaded, err := (&duration{}).load()
+		loaded, message, err := (&duration{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
 }

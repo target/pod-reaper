@@ -12,21 +12,24 @@ func TestChaosLoad(t *testing.T) {
 	t.Run("load", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envChaosChance, "0.5")
-		loaded, err := (&chaos{}).load()
+		loaded, message, err := (&chaos{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "chaos chance 0.5", message)
 		assert.True(t, loaded)
 	})
 	t.Run("no load", func(t *testing.T) {
 		os.Clearenv()
-		loaded, err := (&chaos{}).load()
+		loaded, message, err := (&chaos{}).load()
 		assert.NoError(t, err)
+		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
 	t.Run("invalid chance", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envChaosChance, "not-a-number")
-		loaded, err := (&chaos{}).load()
+		loaded, message, err := (&chaos{}).load()
 		assert.Error(t, err)
+		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
 }

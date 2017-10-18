@@ -5,10 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"k8s.io/client-go/pkg/api/unversioned"
 	"k8s.io/client-go/pkg/api/v1"
 )
+
+func init() {
+	logrus.SetOutput(ioutil.Discard) // disable logging during tests
+}
 
 func testPod() v1.Pod {
 	startTime := unversioned.NewTime(time.Now().Add(-2 * time.Minute))
@@ -54,11 +60,13 @@ func TestShouldReap(t *testing.T) {
 		os.Setenv(envContainerStatus, "test-status")
 		os.Setenv(envChaosChance, "1.0") // always
 		loaded, _ := LoadRules()
-		shouldReap, message := loaded.ShouldReap(testPod())
+		shouldReap, reasons := loaded.ShouldReap(testPod())
 		assert.True(t, shouldReap)
-		assert.Regexp(t, ".*was flagged for chaos.*", message)
-		assert.Regexp(t, ".*has status test-status.*", message)
-		assert.Regexp(t, ".*has been running.*", message)
+		if assert.Equal(t, 3, len(reasons)) {
+			assert.Regexp(t, ".*was flagged for chaos.*", reasons[0])
+			assert.Regexp(t, ".*has status test-status.*", reasons[1])
+			assert.Regexp(t, ".*has been running.*", reasons[2])
+		}
 	})
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()

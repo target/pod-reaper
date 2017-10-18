@@ -70,9 +70,25 @@ A pod will be excluded from the pod-reaper if the pod has a metadata label has a
 These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
 
 ## Logging
-Pod reaper has two logging messages. It logs the pod name and a detailed reason for a reap (determined by the rules) when attempting to reap a pod. It also logs a pod name and an error when a pod fails to be deleted. There are race conditions that may result in pods failing to delete such as the pod terminating on its own or another process/reaper killing the pod.
-`Reaping Pod hello-world-42561140c8367 because has been running for 20h43m24.800555528s AND was flagged for chaos`
-The above had two rules: a maximum run duration of 2 minutes, and a chaos chance. The pod met both rules and was reaped.
+Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus)
+
+- rule load: customer messages for each rule are logged when the pod-reaper is starting
+- reap cycle: a message is logged each time the reaper starts a cycle.
+- pod reap: a message is logged (with a reason for each rule) when a pod is flag for reaping.
+- exit: a message is logged when the reaper exits successfully (only is `RUN_DURATION` is specified)
+
+#### Example Log
+
+```
+{"level":"info","msg":"loaded rule: chaos chance .3","time":"2017-10-18T17:09:25Z"}
+{"level":"info","msg":"loaded rule: maximum run duration 2m","time":"2017-10-18T17:09:25Z"}
+{"level":"info","msg":"executing reap cycle","time":"2017-10-18T17:09:55Z"}
+{"level":"info","msg":"reaping pod","pod":"hello-cloud-deployment-3026746346-bj65k","reasons":["was flagged for chaos","has been running for 3m6.257891269s"],"time":"2017-10-18T17:09:55Z"}
+{"level":"info","msg":"reaping pod","pod":"example-pod-deployment-125971999cgsws","reasons":["was flagged for chaos","has been running for 2m55.269615797s"],"time":"2017-10-18T17:09:55Z"}
+{"level":"info","msg":"executing reap cycle","time":"2017-10-18T17:10:25Z"}
+{"level":"info","msg":"reaping pod","pod":"hello-cloud-deployment-3026746346-grw12","reasons":["was flagged for chaos","has been running for 3m36.054164005s"],"time":"2017-10-18T17:10:25Z"}
+{"level":"info","msg":"pod reaper is exiting","time":"2017-10-18T17:10:46Z"}
+```
 
 ## Implemented Rules
 

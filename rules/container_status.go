@@ -16,14 +16,14 @@ type containerStatus struct {
 	reapStatuses []string
 }
 
-func (rule *containerStatus) load() (bool, error) {
+func (rule *containerStatus) load() (bool, string, error) {
 	value, active := os.LookupEnv(envContainerStatus)
 	if !active {
-		return false, nil
+		return false, "", nil
 	}
 	statuses := strings.Split(value, ",")
 	rule.reapStatuses = statuses
-	return true, nil
+	return true, fmt.Sprintf("container status in [%s]", value), nil
 }
 
 func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
