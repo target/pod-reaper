@@ -1,9 +1,10 @@
 # Contributing to pod-reaper
 
-### Issues
+## Issues
+
 Issues are always welcome! You can expect conversation.
 
-### Creating a rule
+## Creating a rule
 
 - create tests for the rule
 - implement the rule interface in ./rules/rules.go
@@ -12,7 +13,7 @@ Issues are always welcome! You can expect conversation.
 - format using `go fmt ./rules`
 - run the linter `golint` (https://github.com/golang/lint)
 
-### Pull Requests
+## Pull Requests
 
 These rules must be followed for any contributions to be merged into master. A Git installation is required.
 See [here](./docs/getting_started_git.md) for more information.
