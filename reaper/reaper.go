@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
 
-	"errors"
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
@@ -22,17 +20,22 @@ type reaper struct {
 func newReaper() reaper {
 	config, err := rest.InClusterConfig()
 	if err != nil {
+		logrus.WithError(err).Panic("error getting in cluster kubernetes config")
 		panic(err)
 	}
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		logrus.WithError(err).Panic("unable to get client set for in cluster kubernetest config")
 		panic(err)
 	}
 	if clientSet == nil {
-		panic(errors.New("kubernetes client set cannot be nil"))
+		message := "kubernetes client set cannot be nil"
+		logrus.Panic(message)
+		panic(message)
 	}
 	options, err := loadOptions()
 	if err != nil {
+		logrus.WithError(err).Panic("error loading options")
 		panic(err)
 	}
 	return reaper{
@@ -57,6 +60,7 @@ func (reaper reaper) getPods() *v1.PodList {
 	}
 	podList, err := pods.List(listOptions)
 	if err != nil {
+		logrus.WithError(err).Panic("unable to get pods from the cluster")
 		panic(err)
 	}
 	return podList
@@ -73,16 +77,19 @@ func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
 	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
 	if err != nil {
 		// log the error, but continue on
-		fmt.Fprintf(os.Stderr, "unable to delete pod %s: %s", pod.Name, err)
+		logrus.WithFields(logrus.Fields{
+			"pod": pod.Name,
+		}).WithError(err).Warn("unable to delete pod", err)
 	}
 }
 
 func (reaper reaper) scytheCycle() {
+	logrus.Debug("starting reap cycle")
 	pods := reaper.getPods()
 	for _, pod := range pods.Items {
-		shouldReap, reason := reaper.options.rules.ShouldReap(pod)
+		shouldReap, reasons := reaper.options.rules.ShouldReap(pod)
 		if shouldReap {
-			reaper.reapPod(pod, reason)
+			reaper.reapPod(pod, reasons)
 		}
 	}
 }

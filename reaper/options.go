@@ -46,9 +46,6 @@ func gracePeriod() (*int64, error) {
 		return nil, fmt.Errorf("invalid %s: %s", envGracePeriod, err)
 	}
 	seconds := int64(duration.Seconds())
-	if seconds < 0 {
-		return nil, fmt.Errorf("grace period must translate to a non-negative number of seconds: %s", envGracePeriod)
-	}
 	return &seconds, nil
 }
 
