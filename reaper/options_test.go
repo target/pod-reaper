@@ -29,6 +29,27 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, "test-namespace", namespace)
 		})
 	})
+	t.Run("grace period", func(t *testing.T) {
+		t.Run("default", func(t *testing.T) {
+			os.Clearenv()
+			gracePeriod, err := gracePeriod()
+			assert.NoError(t, err)
+			assert.Nil(t, gracePeriod)
+		})
+		t.Run("valid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envGracePeriod, "1m53s999ms")
+			gracePeriod, err := gracePeriod()
+			assert.NoError(t, err)
+			assert.Equal(t, int64(113), *gracePeriod)
+		})
+		t.Run("invalid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envGracePeriod, "invalid")
+			_, err := gracePeriod()
+			assert.Error(t, err)
+		})
+	})
 	t.Run("schedule", func(t *testing.T) {
 		t.Run("default", func(t *testing.T) {
 			os.Clearenv()

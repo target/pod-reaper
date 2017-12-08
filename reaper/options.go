@@ -14,6 +14,7 @@ import (
 
 // environment variable names
 const envNamespace = "NAMESPACE"
+const envGracePeriod = "GRACE_PERIOD"
 const envScheduleCron = "SCHEDULE"
 const envRunDuration = "RUN_DURATION"
 const envExcludeLabelKey = "EXCLUDE_LABEL_KEY"
@@ -23,6 +24,7 @@ const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 
 type options struct {
 	namespace        string
+	gracePeriod      *int64
 	schedule         string
 	runDuration      time.Duration
 	labelExclusion   *labels.Requirement
@@ -32,6 +34,22 @@ type options struct {
 
 func namespace() string {
 	return os.Getenv(envNamespace)
+}
+
+func gracePeriod() (*int64, error) {
+	envGraceDuration, exists := os.LookupEnv(envGracePeriod)
+	if !exists {
+		return nil, nil
+	}
+	duration, err := time.ParseDuration(envGraceDuration)
+	if err != nil {
+		return nil, fmt.Errorf("invalid %s: %s", envGracePeriod, err)
+	}
+	seconds := int64(duration.Seconds())
+	if seconds < 0 {
+		return nil, fmt.Errorf("grace period must translate to a non-negative number of seconds: %s", envGracePeriod)
+	}
+	return &seconds, nil
 }
 
 func envDuration(key string, defValue string) (time.Duration, error) {
@@ -96,6 +114,10 @@ func labelRequirement() (*labels.Requirement, error) {
 
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
+	options.gracePeriod, err = gracePeriod()
+	if err != nil {
+		return options, err
+	}
 	options.schedule = schedule()
 	options.runDuration, err = runDuration()
 	if err != nil {

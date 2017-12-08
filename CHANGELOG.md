@@ -1,5 +1,9 @@
 # pod-reaper: kills pods dead
 
+### 2.1.0
+
+- added configurable `GRACE_PERIOD` to control soft vs hard pod kills
+
 ## 2.0.0
 
 - removed `POLL_INTERVAL` environment variable in favor of cron schedule
@@ -8,7 +12,7 @@
 - refactored packages for clarity
 - testing refactor for clarity
 
-## 1.1.0
+### 1.1.0
 
 - added ability to only reap pods with specified labels
 
