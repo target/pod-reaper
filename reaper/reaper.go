@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
-	"time"
 )
 
 type reaper struct {
@@ -25,7 +24,7 @@ func newReaper() reaper {
 	}
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		logrus.WithError(err).Panic("unable to get client set for in cluster kubernetest config")
+		logrus.WithError(err).Panic("unable to get client set for in cluster kubernetes config")
 		panic(err)
 	}
 	if clientSet == nil {
@@ -102,7 +101,8 @@ func (reaper reaper) harvest() {
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("unable to create cron schedule: '%s' %s", reaper.options.schedule, err.Error()))
+		logrus.WithError(err).Panic("unable to create cron schedule: " + reaper.options.schedule)
+		panic(err)
 	}
 
 	schedule.Start()
