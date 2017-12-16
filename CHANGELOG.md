@@ -1,8 +1,12 @@
 # pod-reaper: kills pods dead
 
-### 2.1.0
+### 2.2.0
 
 - added configurable `GRACE_PERIOD` to control soft vs hard pod kills
+
+### 2.1.0
+
+- Added logging via [logrus](https://github.com/sirupsen/logrus)
 
 ## 2.0.0
 
