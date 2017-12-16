@@ -11,6 +11,7 @@ A rules based pod killing container. Pod-Reaper was designed to kill pods that m
 Pod-Reaper is configurable through environment variables. The pod-reaper specific environment variables are:
 
 - `NAMESPACE` the kubernetes namespace where pod-reaper should look for pods
+- `GRACE_PERIOD` duration that pods should be given to shut down before hard killing the pod
 - `SCHEDULE` schedule for when pod-reaper should look for pods to reap
 - `RUN_DURATION` how long pod-reaper should run before exiting
 - `EXCLUDE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should exclude
@@ -39,6 +40,12 @@ CHAOS_CHANCE=.001
 Default value: "" (which will look at ALL namespaces)
 
 Controls which kubernetes namespace the pod-reaper is in scope for the pod-reaper. Note that the pod-reaper uses an `InClusterConfig` which makes use of the service account that kubernetes gives to its pods. Only pods (and namespaces) accessible to this service account will be visible to the pod-reaper.
+
+### `GRACE_PERIOD`
+
+Default value: nil (indicates to the use the default specified for pods)
+
+Controls the grace period between a soft pod termination and a hard termination. This will determine the time between when the pod's containers are send a `SIGTERM` signal and when they are sent a `SIGKILL` signal. The format follows the go-lang `time.duration` format (example: "1h15m30s"). A duration of `0s` can be considered a hard kill of the pod.
 
 ### `SCHEDULE`
 

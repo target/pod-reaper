@@ -53,7 +53,7 @@ func LoadRules() (Rules, error) {
 // ShouldReap takes a pod and return whether or not the pod should be reaped based on this rule.
 // Also includes a message describing why the pod was flagged for reaping.
 func (rules Rules) ShouldReap(pod v1.Pod) (bool, []string) {
-	reasons := []string{}
+	var reasons []string
 	for _, rule := range rules.LoadedRules {
 		reap, reason := rule.ShouldReap(pod)
 		if !reap {
