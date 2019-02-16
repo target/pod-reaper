@@ -64,7 +64,7 @@ func TestShouldReap(t *testing.T) {
 		assert.True(t, shouldReap)
 		if assert.Equal(t, 3, len(reasons)) {
 			assert.Regexp(t, ".*was flagged for chaos.*", reasons[0])
-			assert.Regexp(t, ".*has status test-status.*", reasons[1])
+			assert.Regexp(t, ".*test-status.*", reasons[1])
 			assert.Regexp(t, ".*has been running.*", reasons[2])
 		}
 	})

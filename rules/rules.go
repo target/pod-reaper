@@ -31,6 +31,7 @@ func LoadRules() (Rules, error) {
 		&chaos{},
 		&containerStatus{},
 		&duration{},
+		&podStatus{},
 	}
 	// return only the active rules
 	loadedRules := []Rule{}
