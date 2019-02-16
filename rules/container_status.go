@@ -21,8 +21,7 @@ func (rule *containerStatus) load() (bool, string, error) {
 	if !active {
 		return false, "", nil
 	}
-	statuses := strings.Split(value, ",")
-	rule.reapStatuses = statuses
+	rule.reapStatuses = strings.Split(value, ",")
 	return true, fmt.Sprintf("container status in [%s]", value), nil
 }
 
