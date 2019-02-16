@@ -1,5 +1,8 @@
 # pod-reaper: kills pods dead
 
+### 2.3.0
+- added `POD_STATUSES` rule (can now filter/kill `Evicted` pods)
+
 ### 2.2.0
 
 - added configurable `GRACE_PERIOD` to control soft vs hard pod kills

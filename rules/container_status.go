@@ -21,8 +21,7 @@ func (rule *containerStatus) load() (bool, string, error) {
 	if !active {
 		return false, "", nil
 	}
-	statuses := strings.Split(value, ",")
-	rule.reapStatuses = statuses
+	rule.reapStatuses = strings.Split(value, ",")
 	return true, fmt.Sprintf("container status in [%s]", value), nil
 }
 
@@ -33,7 +32,7 @@ func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
 			// check both waiting and terminated conditions
 			if (state.Waiting != nil && state.Waiting.Reason == reapStatus) ||
 				(state.Terminated != nil && state.Terminated.Reason == reapStatus) {
-				return true, fmt.Sprintf("has status %s", reapStatus)
+				return true, fmt.Sprintf("has container status %s", reapStatus)
 			}
 		}
 	}

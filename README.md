@@ -130,17 +130,33 @@ Remember that pods can be excluded from reaping if the pod has a label matching 
 
 ### Container Status
 
-Flags a pod for reaping based on the container status.
+Flags a pod for reaping based on a container within a pod having a specific container status.
 
 Enabled and configured by setting the environment variable `CONTAINER_STATUSES` with a coma separated list (no whitespace) of statuses. If a pod is in either a waiting or terminated state with a status in the specified list of status, the pod will be flagged for reaping.
 
 Example:
 
 ```sh
-# every 10 minutes, kill all pods with status ImagePullBackOff, ErrImagePull, or Error
+# every 10 minutes, kill all pods with a container with a status ImagePullBackOff, ErrImagePull, or Error
 SCHEDULE=@every 10m
 CONTAINER_STATUSES=ImagePullBackOff,ErrImagePull,Error
 ```
+Note that this will not catch statuses that are describing the entire pod like the `Evicted` status.
+
+### Pod Status
+
+Flags a pod for reaping based on the pod status. 
+
+Enabled and configured by setting the environment variable `POD_STATUSES` with a coma separated list (no whitespace) of statuses. If the pod status in the specified list of status, the pod will be flagged for reaping.
+
+Example:
+
+```sh
+# every 10 minutes, kill all pods with status ImagePullBackOff, ErrImagePull, or Error
+SCHEDULE=@every 10m
+POD_STATUSES=Evicted,Unknown
+```
+Note that pod status is different than container statuses as it checks the status of the overall pod rather than teh status of containers in the pod. The most obvious use case of this if dealing with `Evicted` pods.
 
 ### Duration
 
