@@ -164,6 +164,12 @@ Flags a pod for reaping based on the pods current run duration.
 
 Enabled and configured by setting the environment variable `MAX_DURATION` with a valid go-lang `time.duration` format (example: "1h15m30s"). If a pod has been running longer than the specified duration, the pod will be flagged for reaping.
 
+### Unready
+
+Flags a pod for reaping based on the time the pod has been unready.
+
+Enabled and configured by setting the environment variable `MAX_UNREADY` with a valid go-lang `time.duration` format (example: "10m"). If a pod has been unready longer than the specified duration, the pod will be flagged for reaping.
+
 ## Running Pod-Reapers
 
 ### Combining Rules
