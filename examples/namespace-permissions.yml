@@ -1,0 +1,81 @@
+# example configuration with permission for running pod-reaper within
+# a namespace against that same namespace (requires no cluster level permissions)
+
+---
+# namespace where pod-reaper will run and operate on
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reaper
+
+---
+# service account for running pod-reaper
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# minimal permissions required for running pod-reaper
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: reaper
+  name: pod-reaper-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "delete"]
+
+---
+# binding the above role (permissions) to the above service account
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: pod-reaper-role-binding
+  namespace: reaper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reaper-role
+subjects:
+- kind: ServiceAccount
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# a basic pod-reaper deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-reaper
+  namespace: reaper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-reaper
+  template:
+    metadata:
+      labels:
+        app: pod-reaper
+    spec:
+      serviceAccount: pod-reaper-service-account # service account from above
+      containers:
+      - name: chaos
+        image: target/pod-reaper
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+        env:
+          - name: NAMESPACE # tell pod-reaper to limit scope to this namespace
+            value: reaper
+          - name: SCHEDULE
+            value: "@every 15s"
+          - name: CHAOS_CHANCE
+            value: ".05"
