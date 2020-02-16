@@ -19,7 +19,9 @@ const (
 )
 
 // Rules is the list of all rules
-var rules = []rule{}
+var rules = []rule{
+	&chaos{},
+}
 
 // ShouldReap takes a pod and makes an assessment about whether or not the pod should be
 // reaped based on provided reasons for the decision

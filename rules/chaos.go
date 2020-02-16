@@ -7,34 +7,31 @@ import (
 	"strconv"
 	"time"
 
-	"k8s.io/client-go/pkg/api/v1"
+	"github.com/sirupsen/logrus"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envChaosChance = "CHAOS_CHANCE"
 
-var _ Rule = (*chaos)(nil)
-
-type chaos struct {
-	chance float64
-}
+type chaos struct{}
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func (rule *chaos) load() (bool, string, error) {
+func (rule *chaos) shouldReap(pod v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envChaosChance)
 	if !active {
-		return false, "", nil
+		return ignore, ""
 	}
 	chance, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid chaos chance %s", err)
+		logrus.WithError(err).Errorf("invalid chaos chance %s", value)
+		panic(err) // the reaper is misconfigured
 	}
-	rule.chance = chance
-	return true, fmt.Sprintf("chaos chance %s", value), nil
-}
-
-func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {
-	return rand.Float64() < rule.chance, "was flagged for chaos"
+	random := rand.Float64()
+	if random < chance {
+		return reap, fmt.Sprintf("random number %f < chaos chance %f", random, chance)
+	}
+	return spare, fmt.Sprintf("random number %f >= chaos chance %f", random, chance)
 }
