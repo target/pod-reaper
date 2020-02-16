@@ -7,8 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
+
+	"github.com/target/pod-reaper/rules"
 )
 
 type reaper struct {
@@ -86,9 +88,15 @@ func (reaper reaper) scytheCycle() {
 	logrus.Debug("starting reap cycle")
 	pods := reaper.getPods()
 	for _, pod := range pods.Items {
-		shouldReap, reasons := reaper.options.rules.ShouldReap(pod)
+		shouldReap, reapReasons, spareReasons := rules.ShouldReap(pod)
 		if shouldReap {
-			reaper.reapPod(pod, reasons)
+			reaper.reapPod(pod, reapReasons)
+		} else if len(spareReasons) > 0 {
+			// if there are explict reasons to spare the pod, log them
+			logrus.WithFields(logrus.Fields{
+				"pod":     pod.Name,
+				"reasons": spareReasons,
+			}).Debug("sparing pod")
 		}
 	}
 }

@@ -19,11 +19,17 @@ const (
 )
 
 // Rules is the list of all rules
-var Rules = [...]rule{}
+var rules = []rule{}
 
 // ShouldReap takes a pod and makes an assessment about whether or not the pod should be
 // reaped based on provided reasons for the decision
-func ShouldReap(pod v1.Pod, rules []rule) (bool, []string, []string) {
+func ShouldReap(pod v1.Pod) (bool, []string, []string) {
+	return shouldReap(pod, rules)
+}
+
+// ShouldReap takes a pod and makes an assessment about whether or not the pod should be
+// reaped based on provided reasons for the decision
+func shouldReap(pod v1.Pod, rules []rule) (bool, []string, []string) {
 	var reapReasons []string
 	var spareReasons []string
 	var reapPod = false

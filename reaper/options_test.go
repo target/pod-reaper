@@ -159,20 +159,4 @@ func TestOptionsLoad(t *testing.T) {
 		_, err := loadOptions()
 		assert.Error(t, err)
 	})
-	t.Run("no rules", func(t *testing.T) {
-		os.Clearenv()
-		_, err := loadOptions()
-		assert.Error(t, err)
-	})
-	t.Run("valid", func(t *testing.T) {
-		os.Clearenv()
-		// ensure at least one rule loads
-		os.Setenv("CHAOS_CHANCE", "1.0")
-		options, err := loadOptions()
-		assert.NoError(t, err)
-		assert.Equal(t, "@every 1m", options.schedule)
-		assert.Equal(t, 0*time.Second, options.runDuration)
-		assert.Nil(t, options.labelExclusion)
-		assert.Nil(t, options.labelRequirement)
-	})
 }

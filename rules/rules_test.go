@@ -67,7 +67,7 @@ func TestShouldReap(t *testing.T) {
 	}
 	pod := v1.Pod{}
 	for _, test := range tests {
-		shouldReap, reapReasons, spareReasons := ShouldReap(pod, test.rules)
+		shouldReap, reapReasons, spareReasons := shouldReap(pod, test.rules)
 		assert.Equal(t, test.shouldReap, shouldReap, "unexpected ShouldReap result")
 		assert.Equal(t, test.reapCount, len(reapReasons), "unexpected ShouldReap reapReasons count")
 		assert.Equal(t, test.spareCount, len(spareReasons), "unexpected ShouldReap spareReasons count")
