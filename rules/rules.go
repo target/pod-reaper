@@ -1,67 +1,46 @@
 package rules
 
 import (
-	"errors"
-
-	"github.com/sirupsen/logrus"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-// Rule is an interface defining the two functions needed for pod reaper to use the rule.
-type Rule interface {
-
-	// load attempts to load the load and returns whether or the not the rule was loaded, a message that will be logged
-	// when the rule is loaded, and any error that may have occurred during the load.
-	load() (bool, string, error)
-
-	// ShouldReap takes a pod and returns whether or not the pod should be reaped based on this rule and a message that
-	// will be logged when the pod is selected for reaping.
-	ShouldReap(pod v1.Pod) (bool, string)
+// rule is a checker that inspects pods and determines in the pod the meets criteria for reaper
+type rule interface {
+	// ShouldReap looks at a pod and makes an assessment about whether or not the pod should be
+	// reaped based on this rule, returning a logging message describing for the decision.
+	shouldReap(pod v1.Pod) (result, string)
 }
+type result int
 
-// Rules is a collection of loaded pod reaper rules.
-type Rules struct {
-	LoadedRules []Rule
-}
+const (
+	reap result = iota
+	spare
+	ignore
+)
 
-// LoadRules load all of the rules based on their own implementations
-func LoadRules() (Rules, error) {
-	// load all possible rules
-	rules := []Rule{
-		&chaos{},
-		&containerStatus{},
-		&duration{},
-		&unready{},
-		&podStatus{},
-	}
-	// return only the active rules
-	loadedRules := []Rule{}
+// Rules is the list of all rules
+var Rules = [...]rule{}
+
+// ShouldReap takes a pod and makes an assessment about whether or not the pod should be
+// reaped based on provided reasons for the decision
+func ShouldReap(pod v1.Pod, rules []rule) (bool, []string, []string) {
+	var reapReasons []string
+	var spareReasons []string
+	var reapPod = false
+	var sparePod = false
 	for _, rule := range rules {
-		load, message, err := rule.load()
-		if err != nil {
-			return Rules{LoadedRules: loadedRules}, err
-		} else if load {
-			logrus.Info("loaded rule: " + message)
-			loadedRules = append(loadedRules, rule)
+		result, reason := rule.shouldReap(pod)
+		switch result {
+		case reap:
+			reapPod = true
+			reapReasons = append(reapReasons, reason)
+		case spare:
+			sparePod = true
+			spareReasons = append(spareReasons, reason)
+		case ignore:
+			// do nothing
 		}
 	}
-	// return an err if no rules where loaded
-	if len(loadedRules) == 0 {
-		return Rules{LoadedRules: loadedRules}, errors.New("no rules were loaded")
-	}
-	return Rules{LoadedRules: loadedRules}, nil
-}
-
-// ShouldReap takes a pod and return whether or not the pod should be reaped based on this rule.
-// Also includes a message describing why the pod was flagged for reaping.
-func (rules Rules) ShouldReap(pod v1.Pod) (bool, []string) {
-	var reasons []string
-	for _, rule := range rules.LoadedRules {
-		reap, reason := rule.ShouldReap(pod)
-		if !reap {
-			return false, []string{}
-		}
-		reasons = append(reasons, reason)
-	}
-	return true, reasons
+	// only reap if at least one rule marked for reaping, and none marked to spare
+	return reapPod && !sparePod, reapReasons, spareReasons
 }
