@@ -87,36 +87,3 @@ func testUnreadyPod(lastTransitionTime time.Time, readyStatus v1.ConditionStatus
 		},
 	}
 }
-
-// func TestUnreadyShouldReap(t *testing.T) {
-// 	t.Run("no ready time", func(t *testing.T) {
-// 		os.Clearenv()
-// 		os.Setenv(envMaxUnready, "10m")
-// 		unready := unready{}
-// 		unready.load()
-// 		pod := testUnreadyPod(nil)
-// 		shouldReap, _ := unready.ShouldReap(pod)
-// 		assert.False(t, shouldReap)
-// 	})
-// 	t.Run("reap", func(t *testing.T) {
-// 		os.Clearenv()
-// 		os.Setenv(envMaxUnready, "9m59s")
-// 		unready := unready{}
-// 		unready.load()
-// 		lastTransitionTime := time.Now().Add(-10 * time.Minute)
-// 		pod := testUnreadyPod(&lastTransitionTime)
-// 		shouldReap, reason := unready.ShouldReap(pod)
-// 		assert.True(t, shouldReap)
-// 		assert.Regexp(t, ".*has been unready.*", reason)
-// 	})
-// 	t.Run("no reap", func(t *testing.T) {
-// 		os.Clearenv()
-// 		os.Setenv(envMaxUnready, "10m1s")
-// 		unready := unready{}
-// 		unready.load()
-// 		lastTransitionTime := time.Now().Add(-10 * time.Minute)
-// 		pod := testUnreadyPod(&lastTransitionTime)
-// 		shouldReap, _ := unready.ShouldReap(pod)
-// 		assert.False(t, shouldReap)
-// 	})
-// }
