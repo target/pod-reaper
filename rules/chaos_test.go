@@ -8,14 +8,14 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func TestChaosInvalid(t *testing.T) {
+func TestChaosIgnore(t *testing.T) {
 	os.Unsetenv(envChaosChance)
 	reapResult, message := chaos(v1.Pod{})
 	assert.Equal(t, ignore, reapResult)
 	assert.Equal(t, "not configured", message)
 }
 
-func TestChaosIgnore(t *testing.T) {
+func TestChaosInvalid(t *testing.T) {
 	os.Setenv(envChaosChance, "not-a-number")
 	defer func(){
 		err := recover()
