@@ -27,7 +27,7 @@ func chaos(pod v1.Pod) (result, string) {
 	}
 	random := rand.Float64()
 	if random < chance {
-		return reap, fmt.Sprintf("random number %f less than chaos chance %f", random, chance)
+		return reap, fmt.Sprintf("random number is less than chaos chance %f (%f)", chance, random)
 	}
-	return spare, fmt.Sprintf("random number %f greater than or equal chaos chance %f", random, chance)
+	return spare, fmt.Sprintf("random number is greater than or equal chaos chance %f (%f)", chance, random)
 }

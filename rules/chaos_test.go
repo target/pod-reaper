@@ -34,12 +34,12 @@ func TestChaos(t *testing.T) {
 		{
 			env:          "1.0",
 			reapResult:   reap,
-			messageRegex: "^random number .* less than chaos chance .*$",
+			messageRegex: "^random number is less than chaos chance 1.0.*$",
 		},
 		{
 			env:          "0.0",
 			reapResult:   spare,
-			messageRegex: "^random number .* greater than or equal chaos chance .*$",
+			messageRegex: "^random number is greater than or equal chaos chance 0.0.*$",
 		},
 	}
 	for _, test := range tests {
