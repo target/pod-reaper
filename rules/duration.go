@@ -10,33 +10,24 @@ import (
 
 const envMaxDuration = "MAX_DURATION"
 
-var _ Rule = (*duration)(nil)
-
-type duration struct {
-	duration time.Duration
-}
-
-func (rule *duration) load() (bool, string, error) {
+func duration(pod v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envMaxDuration)
 	if !active {
-		return false, "", nil
+		return ignore, notConfigured
 	}
 	duration, err := time.ParseDuration(value)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid max duration: %s", err)
+		panic(fmt.Errorf("failed to parse %s=%s %v", envMaxDuration, value, err))
 	}
-	rule.duration = duration
-	return true, fmt.Sprintf("maximum run duration %s", value), nil
-}
-
-func (rule *duration) ShouldReap(pod v1.Pod) (bool, string) {
 	podStartTime := pod.Status.StartTime
 	if podStartTime == nil {
-		return false, ""
+		return ignore, "pod has no start time"
 	}
 	startTime := time.Unix(podStartTime.Unix(), 0) // convert to standard go time
-	cutoffTime := time.Now().Add(-1 * rule.duration)
-	runningDuration := time.Now().Sub(startTime)
-	message := fmt.Sprintf("has been running for %s", runningDuration.String())
-	return startTime.Before(cutoffTime), message
+	cutoffTime := time.Now().Add(-1 * duration)
+	running := time.Now().Sub(startTime)
+	if startTime.Before(cutoffTime) {
+		return reap, fmt.Sprintf("pod running for longer than %s (%s)", duration.String(), running.String())
+	}
+	return spare, fmt.Sprintf("pod running for less than %s (%s)", duration.String(), running.String())
 }

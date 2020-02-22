@@ -7,73 +7,65 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func testDurationPod(startTime *time.Time) v1.Pod {
-	pod := v1.Pod{}
-	if startTime != nil {
-		setTime := unversioned.NewTime(*startTime)
-		pod.Status.StartTime = &setTime
+func TestDurationIgnore(t *testing.T) {
+	os.Unsetenv(envMaxDuration)
+	reapResult, message := duration(v1.Pod{})
+	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, "not configured", message)
+}
+
+func TestDurationInvalid(t *testing.T) {
+	os.Setenv(envMaxDuration, "invalid")
+	defer func() {
+		err := recover()
+		assert.NotNil(t, err)
+		assert.Regexp(t, "^failed to parse.*$", err)
+	}()
+	duration(v1.Pod{})
+}
+
+func TestDurationNoStartTime(t *testing.T) {
+	os.Setenv(envMaxDuration, "1m")
+	reapResult, message := duration(v1.Pod{})
+	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, "pod has no start time", message)
+}
+
+func TestDuration(t *testing.T) {
+	tests := []struct {
+		env          string
+		startTime    time.Time
+		reapResult   result
+		messageRegex string
+	}{
+		{
+			env:          "1m",
+			startTime:    time.Now().Add(-2 * time.Minute),
+			reapResult:   reap,
+			messageRegex: "^pod running for longer than 1m.*$",
+		},
+		{
+			env:          "3m",
+			startTime:    time.Now().Add(-2 * time.Minute),
+			reapResult:   spare,
+			messageRegex: "^pod running for less than 3m.*$",
+		},
 	}
+	for _, test := range tests {
+		os.Setenv(envMaxDuration, test.env)
+		pod := durationPod(test.startTime)
+		reapResult, message := duration(pod)
+		assert.Equal(t, test.reapResult, reapResult)
+		assert.Regexp(t, test.messageRegex, message)
+	}
+}
+
+func durationPod(startTime time.Time) v1.Pod {
+	pod := v1.Pod{}
+	setTime := unversioned.NewTime(startTime)
+	pod.Status.StartTime = &setTime
 	return pod
-}
-
-func TestDurationLoad(t *testing.T) {
-	t.Run("load", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxDuration, "30m")
-		loaded, message, err := (&duration{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "maximum run duration 30m", message)
-		assert.True(t, loaded)
-	})
-	t.Run("invalid duration", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxDuration, "not-a-duration")
-		loaded, message, err := (&duration{}).load()
-		assert.Error(t, err)
-		assert.Equal(t, "", message)
-		assert.False(t, loaded)
-	})
-	t.Run("no load", func(t *testing.T) {
-		os.Clearenv()
-		loaded, message, err := (&duration{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "", message)
-		assert.False(t, loaded)
-	})
-}
-
-func TestDurationShouldReap(t *testing.T) {
-	t.Run("no start time", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxDuration, "2m")
-		duration := duration{}
-		duration.load()
-		pod := testDurationPod(nil) // no start time can happen during pod creation
-		shouldReap, _ := duration.ShouldReap(pod)
-		assert.False(t, shouldReap)
-	})
-	t.Run("reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxDuration, "1m59s")
-		duration := duration{}
-		duration.load()
-		startTime := time.Now().Add(-2 * time.Minute)
-		pod := testDurationPod(&startTime)
-		shouldReap, reason := duration.ShouldReap(pod)
-		assert.True(t, shouldReap)
-		assert.Regexp(t, ".*has been running.*", reason)
-	})
-	t.Run("no reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxDuration, "2m1s")
-		duration := duration{}
-		duration.load()
-		startTime := time.Now().Add(-2 * time.Minute)
-		pod := testDurationPod(&startTime)
-		shouldReap, _ := duration.ShouldReap(pod)
-		assert.False(t, shouldReap)
-	})
 }
