@@ -26,6 +26,9 @@ spec:
         # this configuration looks at all pods in the "default" namespace without the label pod-reaper: disabled and
         # will delete 30% of found pods that have been running for more than 2 minutes
         env:
+          # Set log level to Debug
+          - name: LOG_LEVEL
+            value: Debug
           # only look for pods in the "default" namespace
           - name: NAMESPACE
             value: default
@@ -55,6 +58,9 @@ spec:
             memory: 20Mi
         # this configuration looks at all pods, in every namespace every 15 seconds, and deletes 5% of them.
         env:
+          # Set log level to Debug
+          - name: LOG_LEVEL
+            value: Debug
           # check pods every 15 seconds
           - name: SCHEDULE
             value: "0/15 * * * * *"
@@ -74,6 +80,9 @@ spec:
         # this configuration looks at all pods, in every namespace every 3 minutes and deletes any with a container
         # with status of Error or ErrImagePull
         env:
+          # Set log level to Debug
+          - name: LOG_LEVEL
+            value: Debug
           # check pods every 3 min
           - name: SCHEDULE
             value: "@every 3m"

@@ -90,12 +90,18 @@ These environment variables build a label selector that pods must match in order
 
 ## Logging
 
-Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus)
+Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus). 
 
 - rule load: customer messages for each rule are logged when the pod-reaper is starting
 - reap cycle: a message is logged each time the reaper starts a cycle.
 - pod reap: a message is logged (with a reason for each rule) when a pod is flag for reaping.
 - exit: a message is logged when the reaper exits successfully (only is `RUN_DURATION` is specified)
+
+### `LOG_LEVEL`
+
+Default value: Info
+
+Messages this level and above will be logged. Available logging levels: Debug, Info, Warning, Error, Fatal and Panic
 
 ### Example Log
 
