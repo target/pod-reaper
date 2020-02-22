@@ -17,7 +17,7 @@ func TestChaosIgnore(t *testing.T) {
 
 func TestChaosInvalid(t *testing.T) {
 	os.Setenv(envChaosChance, "not-a-number")
-	defer func(){
+	defer func() {
 		err := recover()
 		assert.NotNil(t, err)
 		assert.Regexp(t, "^failed to parse.*$", err)
@@ -34,12 +34,12 @@ func TestChaos(t *testing.T) {
 		{
 			env:          "1.0",
 			reapResult:   reap,
-			messageRegex: "^random number .* < chaos chance .*$",
+			messageRegex: "^random number .* less than chaos chance .*$",
 		},
 		{
 			env:          "0.0",
 			reapResult:   spare,
-			messageRegex: "^random number .* >= chaos chance .*$",
+			messageRegex: "^random number .* greater than or equal chaos chance .*$",
 		},
 	}
 	for _, test := range tests {
