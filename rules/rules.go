@@ -4,10 +4,18 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
+const notConfigured = "not configured"
+
 type rule func(v1.Pod) (result, string)
 
 // Rules is the list of all rules
-var rules = []rule{}
+var rules = []rule{
+	chaos,
+	containerStatus,
+	duration,
+	podStatus,
+	unready,
+}
 
 // ShouldReap takes a pod and makes an assessment about whether or not the pod should be
 // reaped based on provided reasons for the decision
