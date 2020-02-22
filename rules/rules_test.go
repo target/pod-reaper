@@ -7,19 +7,15 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-var _ rule = (*testRule)(nil)
-
-type testRule struct {
-	fixedResult result
+func testRule(fixedResult result) rule {
+	return func(v1.Pod) (result, string) {
+		return fixedResult, "fixed result"
+	}
 }
 
-func (rule *testRule) shouldReap(pod v1.Pod) (result, string) {
-	return rule.fixedResult, "fixed result"
-}
-
-var testReap = testRule{fixedResult: reap}
-var testSpare = testRule{fixedResult: spare}
-var testIgnore = testRule{fixedResult: ignore}
+var testReap = testRule(reap)
+var testSpare = testRule(spare)
+var testIgnore = testRule(ignore)
 
 func TestShouldReap(t *testing.T) {
 	tests := []struct {
@@ -29,37 +25,37 @@ func TestShouldReap(t *testing.T) {
 		spareCount int
 	}{
 		{
-			rules:      []rule{&testReap},
+			rules:      []rule{testReap},
 			shouldReap: true,
 			reapCount:  1,
 			spareCount: 0,
 		},
 		{
-			rules:      []rule{&testSpare},
+			rules:      []rule{testSpare},
 			shouldReap: false,
 			reapCount:  0,
 			spareCount: 1,
 		},
 		{
-			rules:      []rule{&testIgnore},
+			rules:      []rule{testIgnore},
 			shouldReap: false,
 			reapCount:  0,
 			spareCount: 0,
 		},
 		{
-			rules:      []rule{&testReap, &testIgnore},
+			rules:      []rule{testReap, testIgnore},
 			shouldReap: true,
 			reapCount:  1,
 			spareCount: 0,
 		},
 		{
-			rules:      []rule{&testSpare, &testIgnore},
+			rules:      []rule{testSpare, testIgnore},
 			shouldReap: false,
 			reapCount:  0,
 			spareCount: 1,
 		},
 		{
-			rules:      []rule{&testReap, &testSpare, &testIgnore},
+			rules:      []rule{testReap, testSpare, testIgnore},
 			shouldReap: false,
 			reapCount:  1,
 			spareCount: 1,
