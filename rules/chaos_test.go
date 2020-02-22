@@ -1,18 +1,30 @@
 package rules
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func init() {
-	logrus.SetOutput(ioutil.Discard)
+func TestChaosInvalid(t *testing.T) {
+	os.Unsetenv(envChaosChance)
+	reapResult, message := chaos(v1.Pod{})
+	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, "not configured", message)
 }
+
+func TestChaosIgnore(t *testing.T) {
+	os.Setenv(envChaosChance, "not-a-number")
+	defer func(){
+		err := recover()
+		assert.NotNil(t, err)
+		assert.Regexp(t, "^failed to parse.*$", err)
+	}()
+	chaos(v1.Pod{})
+}
+
 func TestChaosShouldReap(t *testing.T) {
 	tests := []struct {
 		env          string
@@ -30,19 +42,10 @@ func TestChaosShouldReap(t *testing.T) {
 			messageRegex: "^random number .* >= chaos chance .*$",
 		},
 	}
-	chaos := chaos{}
-	pod := v1.Pod{}
 	for _, test := range tests {
 		os.Setenv(envChaosChance, test.env)
-		reapResult, message := chaos.shouldReap(pod)
+		reapResult, message := chaos(v1.Pod{})
 		assert.Equal(t, test.reapResult, reapResult)
 		assert.Regexp(t, test.messageRegex, message)
 	}
-
-	// test that we panic if the environment variable is invalid
-	defer func() {
-		assert.NotNil(t, recover())
-	}()
-	os.Setenv(envChaosChance, "not-a-number")
-	chaos.shouldReap(pod)
 }
