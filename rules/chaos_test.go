@@ -25,7 +25,7 @@ func TestChaosInvalid(t *testing.T) {
 	chaos(v1.Pod{})
 }
 
-func TestChaosShouldReap(t *testing.T) {
+func TestChaos(t *testing.T) {
 	tests := []struct {
 		env          string
 		reapResult   result
