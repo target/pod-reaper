@@ -5,36 +5,26 @@ import (
 	"os"
 	"strings"
 
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envContainerStatus = "CONTAINER_STATUSES"
 
-var _ Rule = (*containerStatus)(nil)
-
-type containerStatus struct {
-	reapStatuses []string
-}
-
-func (rule *containerStatus) load() (bool, string, error) {
+func containerStatus(pod v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envContainerStatus)
 	if !active {
-		return false, "", nil
+		return ignore, notConfigured
 	}
-	rule.reapStatuses = strings.Split(value, ",")
-	return true, fmt.Sprintf("container status in [%s]", value), nil
-}
-
-func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
-	for _, reapStatus := range rule.reapStatuses {
+	reapStatuses := strings.Split(value, ",")
+	for _, reapStatus := range reapStatuses {
 		for _, containerStatus := range pod.Status.ContainerStatuses {
 			state := containerStatus.State
 			// check both waiting and terminated conditions
 			if (state.Waiting != nil && state.Waiting.Reason == reapStatus) ||
 				(state.Terminated != nil && state.Terminated.Reason == reapStatus) {
-				return true, fmt.Sprintf("has container status %s", reapStatus)
+				return reap, fmt.Sprintf("has container with status '%s' in {%s}", reapStatus, value)
 			}
 		}
 	}
-	return false, ""
+	return spare, fmt.Sprintf("has no container with status in {%s}", value)
 }
