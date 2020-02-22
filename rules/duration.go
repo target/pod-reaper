@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envMaxDuration = "MAX_DURATION"
@@ -21,7 +21,7 @@ func duration(pod v1.Pod) (result, string) {
 	}
 	podStartTime := pod.Status.StartTime
 	if podStartTime == nil {
-		return ignore, "pod has no start time"
+		return spare, "pod has no start time"
 	}
 	startTime := time.Unix(podStartTime.Unix(), 0) // convert to standard go time
 	cutoffTime := time.Now().Add(-1 * duration)

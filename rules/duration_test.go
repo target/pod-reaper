@@ -30,7 +30,7 @@ func TestDurationInvalid(t *testing.T) {
 func TestDurationNoStartTime(t *testing.T) {
 	os.Setenv(envMaxDuration, "1m")
 	reapResult, message := duration(v1.Pod{})
-	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, spare, reapResult)
 	assert.Equal(t, "pod has no start time", message)
 }
 

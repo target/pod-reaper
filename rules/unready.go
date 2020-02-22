@@ -10,36 +10,29 @@ import (
 
 const envMaxUnready = "MAX_UNREADY"
 
-var _ Rule = (*unready)(nil)
-
-type unready struct {
-	duration time.Duration
-}
-
-func (rule *unready) load() (bool, string, error) {
+func unready(pod v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envMaxUnready)
 	if !active {
-		return false, "", nil
+		return ignore, notConfigured
 	}
 	duration, err := time.ParseDuration(value)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid max unready duration: %s", err)
+		panic(fmt.Errorf("failed to parse %s=%s %v", envMaxUnready, value, err))
 	}
-	rule.duration = duration
-	return true, fmt.Sprintf("maximum unready %s", value), nil
-}
-
-func (rule *unready) ShouldReap(pod v1.Pod) (bool, string) {
-	condition := getCondition(pod, v1.PodReady)
-	if condition == nil || condition.Status == "True" {
-		return false, ""
+	readyCondition := getCondition(pod, v1.PodReady)
+	if readyCondition == nil {
+		return spare, "pod does not have a ready condition"
 	}
-
-	transitionTime := time.Unix(condition.LastTransitionTime.Unix(), 0) // convert to standard go time
-	cutoffTime := time.Now().Add(-1 * rule.duration)
+	if readyCondition.Status == "True" {
+		return spare, "pod is ready"
+	}
+	transitionTime := time.Unix(readyCondition.LastTransitionTime.Unix(), 0) // convert to standard go time
+	cutoffTime := time.Now().Add(-1 * duration)
 	unreadyDuration := time.Now().Sub(transitionTime)
-	message := fmt.Sprintf("has been unready for %s", unreadyDuration.String())
-	return transitionTime.Before(cutoffTime), message
+	if transitionTime.Before(cutoffTime) {
+		return reap, fmt.Sprintf("has been unready longer than %s (%s)", duration, unreadyDuration)
+	}
+	return spare, fmt.Sprintf("has been unready less than %s (%s)", duration, unreadyDuration)
 }
 
 func getCondition(pod v1.Pod, conditionType v1.PodConditionType) *v1.PodCondition {
@@ -48,6 +41,5 @@ func getCondition(pod v1.Pod, conditionType v1.PodConditionType) *v1.PodConditio
 			return &condition
 		}
 	}
-
 	return nil
 }

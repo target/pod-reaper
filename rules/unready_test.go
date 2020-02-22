@@ -7,80 +7,116 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func testUnreadyPod(lastTransitionTime *time.Time) v1.Pod {
-	pod := v1.Pod{}
-	if lastTransitionTime != nil {
-		setTime := unversioned.NewTime(*lastTransitionTime)
-		pod.Status.Conditions = []v1.PodCondition{
-			v1.PodCondition{
-				Type:               v1.PodReady,
-				LastTransitionTime: setTime,
-				Reason:             "ContainersNotReady",
-				Status:             "False",
-			},
-		}
+func TestUnreadyIgnore(t *testing.T) {
+	os.Unsetenv(envMaxUnready)
+	reapResult, message := unready(v1.Pod{})
+	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, "not configured", message)
+}
+
+func TestUnreadyInvalid(t *testing.T) {
+	os.Setenv(envMaxUnready, "invalid")
+	defer func() {
+		err := recover()
+		assert.NotNil(t, err)
+		assert.Regexp(t, "^failed to parse.*$", err)
+	}()
+	unready(v1.Pod{})
+}
+
+func TestUnreadyNoReadyTime(t *testing.T) {
+	os.Setenv(envMaxUnready, "10m")
+	reapResult, message := unready(v1.Pod{})
+	assert.Equal(t, spare, reapResult)
+	assert.Equal(t, "pod does not have a ready condition", message)
+}
+
+func TestUnready(t *testing.T) {
+	tests := []struct {
+		env                string
+		lastTransitionTime time.Time
+		readyStatus        v1.ConditionStatus
+		reapResult         result
+		messageRegex       string
+	}{
+		{
+			env:                "1m",
+			lastTransitionTime: time.Now().Add(-10 * time.Minute),
+			readyStatus:        v1.ConditionTrue,
+			reapResult:         spare,
+			messageRegex:       "^pod is ready$",
+		},
+		{
+			env:                "9m59s",
+			lastTransitionTime: time.Now().Add(-10 * time.Minute),
+			readyStatus:        v1.ConditionFalse,
+			reapResult:         reap,
+			messageRegex:       "^has been unready longer than 9m59s.*$",
+		},
+		{
+			env:                "10m01s",
+			lastTransitionTime: time.Now().Add(-10 * time.Minute),
+			readyStatus:        v1.ConditionFalse,
+			reapResult:         spare,
+			messageRegex:       "^has been unready less than 10m1s.*$",
+		},
 	}
-	return pod
+	for _, test := range tests {
+		os.Setenv(envMaxUnready, test.env)
+		pod := testUnreadyPod(test.lastTransitionTime, test.readyStatus)
+		reapResult, message := unready(pod)
+		assert.Equal(t, test.reapResult, reapResult)
+		assert.Regexp(t, test.messageRegex, message)
+	}
 }
 
-func TestUnreadyLoad(t *testing.T) {
-	t.Run("load", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxUnready, "30m")
-		loaded, message, err := (&unready{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "maximum unready 30m", message)
-		assert.True(t, loaded)
-	})
-	t.Run("invalid time", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxUnready, "not-a-time")
-		loaded, message, err := (&unready{}).load()
-		assert.Error(t, err)
-		assert.Equal(t, "", message)
-		assert.False(t, loaded)
-	})
-	t.Run("no load", func(t *testing.T) {
-		os.Clearenv()
-		loaded, message, err := (&unready{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "", message)
-		assert.False(t, loaded)
-	})
+func testUnreadyPod(lastTransitionTime time.Time, readyStatus v1.ConditionStatus) v1.Pod {
+	return v1.Pod{
+		Status: v1.PodStatus{
+			Conditions: []v1.PodCondition{
+				v1.PodCondition{
+					Type:               v1.PodReady,
+					LastTransitionTime: unversioned.NewTime(lastTransitionTime),
+					Reason:             "ContainersNotReady",
+					Status:             readyStatus,
+				},
+			},
+		},
+	}
 }
 
-func TestUnreadyShouldReap(t *testing.T) {
-	t.Run("no ready time", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxUnready, "10m")
-		unready := unready{}
-		unready.load()
-		pod := testUnreadyPod(nil)
-		shouldReap, _ := unready.ShouldReap(pod)
-		assert.False(t, shouldReap)
-	})
-	t.Run("reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxUnready, "9m59s")
-		unready := unready{}
-		unready.load()
-		lastTransitionTime := time.Now().Add(-10 * time.Minute)
-		pod := testUnreadyPod(&lastTransitionTime)
-		shouldReap, reason := unready.ShouldReap(pod)
-		assert.True(t, shouldReap)
-		assert.Regexp(t, ".*has been unready.*", reason)
-	})
-	t.Run("no reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envMaxUnready, "10m1s")
-		unready := unready{}
-		unready.load()
-		lastTransitionTime := time.Now().Add(-10 * time.Minute)
-		pod := testUnreadyPod(&lastTransitionTime)
-		shouldReap, _ := unready.ShouldReap(pod)
-		assert.False(t, shouldReap)
-	})
-}
+// func TestUnreadyShouldReap(t *testing.T) {
+// 	t.Run("no ready time", func(t *testing.T) {
+// 		os.Clearenv()
+// 		os.Setenv(envMaxUnready, "10m")
+// 		unready := unready{}
+// 		unready.load()
+// 		pod := testUnreadyPod(nil)
+// 		shouldReap, _ := unready.ShouldReap(pod)
+// 		assert.False(t, shouldReap)
+// 	})
+// 	t.Run("reap", func(t *testing.T) {
+// 		os.Clearenv()
+// 		os.Setenv(envMaxUnready, "9m59s")
+// 		unready := unready{}
+// 		unready.load()
+// 		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+// 		pod := testUnreadyPod(&lastTransitionTime)
+// 		shouldReap, reason := unready.ShouldReap(pod)
+// 		assert.True(t, shouldReap)
+// 		assert.Regexp(t, ".*has been unready.*", reason)
+// 	})
+// 	t.Run("no reap", func(t *testing.T) {
+// 		os.Clearenv()
+// 		os.Setenv(envMaxUnready, "10m1s")
+// 		unready := unready{}
+// 		unready.load()
+// 		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+// 		pod := testUnreadyPod(&lastTransitionTime)
+// 		shouldReap, _ := unready.ShouldReap(pod)
+// 		assert.False(t, shouldReap)
+// 	})
+// }
