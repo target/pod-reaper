@@ -11,8 +11,8 @@ const defaultLogLevel = logrus.InfoLevel
 
 func main() {
 	logLevel := getLogLevel()
-	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetLevel(logLevel)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	reaper := newReaper()
 	reaper.harvest()
@@ -27,6 +27,7 @@ func getLogLevel() logrus.Level {
 
 	level, err := logrus.ParseLevel(levelString)
 	if err != nil {
+		logrus.Errorf("error parsing %s: %v", envLogLevel, err)
 		return defaultLogLevel
 	}
 
