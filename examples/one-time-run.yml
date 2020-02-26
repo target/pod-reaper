@@ -60,6 +60,8 @@ spec:
     env:
       - name: SCHEDULE
         value: "@every 30s"
+      - name: LOG_LEVEL
+        value: debug
       # include a run duration so pod-reaper knows when it should stop
       - name: RUN_DURATION
         value: 5m
