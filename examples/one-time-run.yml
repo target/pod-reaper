@@ -1,0 +1,75 @@
+# example configuration with permissions to run pod-reaper once over a short
+# duration; once it has completed, it will exit and not-restart
+
+---
+# namespace for the reaper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reaper
+
+---
+# service account for running pod-reaper
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# minimal permissions required for running pod-reaper at cluster level
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: pod-reaper-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "delete"]
+
+---
+# binding the above cluster role (permissions) to the above service account
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-reaper-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-reaper-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# a pod spec instead of a deployment or replica set
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    pod-reaper: disable
+  name: pod-reaper
+  namespace: reaper
+spec:
+  restartPolicy: Never # do not restart - just run once
+  serviceAccount: pod-reaper-service-account # service account from above
+  containers:
+  - image: target/pod-reaper
+    name: pod-reaper
+    env:
+      - name: SCHEDULE
+        value: "@every 30s"
+      - name: LOG_LEVEL
+        value: debug
+      # include a run duration so pod-reaper knows when it should stop
+      - name: RUN_DURATION
+        value: 5m
+      - name: CHAOS_CHANCE
+        value: "0.5"
+      # exclude the reaper itself so it does not kill itself
+      # otherwise, the reaper could kill itself and end this run early
+      - name: EXCLUDE_LABEL_KEY
+        value: pod-reaper
+      - name: EXCLUDE_LABEL_VALUES
+        value: disable
