@@ -99,6 +99,7 @@ func (reaper reaper) scytheCycle() {
 			}).Debug("sparing pod")
 		}
 	}
+	logrus.Debug("reap cycle completed")
 }
 
 func (reaper reaper) harvest() {
