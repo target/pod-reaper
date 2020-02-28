@@ -1,5 +1,5 @@
 # Build
-FROM golang:1.7 AS build
+FROM golang:1.9 AS build
 WORKDIR /go/src/github.com/target/pod-reaper
 ENV CGO_ENABLED=0 GOOS=linux
 RUN go get github.com/Masterminds/glide
