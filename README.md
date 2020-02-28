@@ -90,12 +90,18 @@ These environment variables build a label selector that pods must match in order
 
 ## Logging
 
-Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus)
+Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus). 
 
 - rule load: customer messages for each rule are logged when the pod-reaper is starting
 - reap cycle: a message is logged each time the reaper starts a cycle.
 - pod reap: a message is logged (with a reason for each rule) when a pod is flag for reaping.
 - exit: a message is logged when the reaper exits successfully (only is `RUN_DURATION` is specified)
+
+### `LOG_LEVEL`
+
+Default value: Info
+
+Messages this level and above will be logged. Available logging levels: Debug, Info, Warning, Error, Fatal and Panic
 
 ### Example Log
 
@@ -171,6 +177,13 @@ Flags a pod for reaping based on the time the pod has been unready.
 Enabled and configured by setting the environment variable `MAX_UNREADY` with a valid go-lang `time.duration` format (example: "10m"). If a pod has been unready longer than the specified duration, the pod will be flagged for reaping.
 
 ## Running Pod-Reapers
+
+### Service Accounts
+
+Pod reaper uses the permissions of the pod's service account to list and delete pods. Unless specified, the service account used will be the default service account in the pod's namespace. By default, and in most cases, the default service account will not have the neccessary permissions to list and delete pods.
+
+- Cluster Wide Permissions: [example](examples/cluster-permissions.yml)
+- Namespace Specific Permissions: [example](examples/namespace-permissions.yml)
 
 ### Combining Rules
 
