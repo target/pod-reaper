@@ -27,9 +27,9 @@ imports:
   subpackages:
   - spew
 - name: github.com/docker/distribution
-  version: cd27f179f2c10c5d300e6d09025b538c475b0d51
+  version: 2461543d988979529609e8cb6fca9ca190dc48da
   subpackages:
-  - digest
+  - digestset
   - reference
 - name: github.com/emicklei/go-restful
   version: 09691a3b6378b740595c1002f40c34dd5f218a22
@@ -61,14 +61,20 @@ imports:
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/jonboulle/clockwork
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
+- name: github.com/joonix/log
+  version: f5f056244ba320717491aa9a073a2cb4fdc2ff30
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: f55edac94c9bbba5d6182a4be46d86a2c9b5b50e
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/opencontainers/go-digest
+  version: dd78d7521eee4ff6016d9b6273dc328308ac5a1c
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/PuerkitoBio/purell
@@ -110,10 +116,9 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489
   subpackages:
   - unix
-  - windows
 - name: golang.org/x/text
   version: 2910a502d2bf9e43193af9d68ca516529614eed3
   subpackages:

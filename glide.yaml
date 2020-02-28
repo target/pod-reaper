@@ -22,3 +22,7 @@ import:
   version: ^1.0.0
 - package: github.com/sirupsen/logrus
   version: ^1.0.0
+- package: github.com/docker/distribution
+  version: ^2.7.1
+- package: github.com/joonix/log
+  version: v0.1
