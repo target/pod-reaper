@@ -10,6 +10,7 @@ import (
 const envLogLevel = "LOG_LEVEL"
 const envLogFormat = "LOG_FORMAT"
 const fluentdFormat = "Fluentd"
+const logrusFormat = "Logrus"
 const defaultLogLevel = logrus.InfoLevel
 
 func main() {
@@ -40,7 +41,7 @@ func getLogLevel() logrus.Level {
 
 func getLogFormat() logrus.Formatter {
 	formatString, exists := os.LookupEnv(envLogFormat)
-	if !exists {
+	if !exists || formatString == logrusFormat {
 		return &logrus.JSONFormatter{}
 	} else if formatString == fluentdFormat {
 		return &joonix.FluentdFormatter{}

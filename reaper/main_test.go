@@ -56,6 +56,12 @@ func TestGetLogFormat(t *testing.T) {
 		format := getLogFormat()
 		assert.Equal(t, reflect.TypeOf(format), reflect.TypeOf(&logrus.JSONFormatter{}))
 	})
+	t.Run("logrus", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envLogFormat, "Logrus")
+		format := getLogFormat()
+		assert.Equal(t, reflect.TypeOf(format), reflect.TypeOf(&logrus.JSONFormatter{}))
+	})
 	t.Run("fluentd", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envLogFormat, "Fluentd")
