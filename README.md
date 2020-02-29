@@ -116,6 +116,12 @@ Messages this level and above will be logged. Available logging levels: Debug, I
 {"level":"info","msg":"pod reaper is exiting","time":"2017-10-18T17:10:46Z"}
 ```
 
+### `LOG_FORMAT`
+
+Default value: Logrus
+
+This environment variable modifies the structured log format for easy ingestion into different logging systems, including Stackdriver via the Fluentd format. Available formats: Logrus, Fluentd
+
 ## Implemented Rules
 
 ### Chaos Chance
