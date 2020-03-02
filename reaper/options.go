@@ -8,8 +8,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
-
-	"github.com/target/pod-reaper/rules"
 )
 
 // environment variable names
@@ -29,7 +27,6 @@ type options struct {
 	runDuration      time.Duration
 	labelExclusion   *labels.Requirement
 	labelRequirement *labels.Requirement
-	rules            rules.Rules
 }
 
 func namespace() string {
@@ -125,12 +122,6 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.labelRequirement, err = labelRequirement()
-	if err != nil {
-		return options, err
-	}
-
-	// rules
-	options.rules, err = rules.LoadRules()
 	if err != nil {
 		return options, err
 	}

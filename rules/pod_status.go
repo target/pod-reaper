@@ -5,32 +5,22 @@ import (
 	"os"
 	"strings"
 
-	"k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envPodStatus = "POD_STATUSES"
 
-var _ Rule = (*podStatus)(nil)
-
-type podStatus struct {
-	reapStatuses []string
-}
-
-func (rule *podStatus) load() (bool, string, error) {
+func podStatus(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envPodStatus)
 	if !active {
-		return false, "", nil
+		return ignore, notConfigured
 	}
-	rule.reapStatuses = strings.Split(value, ",")
-	return true, fmt.Sprintf("pod status in [%s]", value), nil
-}
-
-func (rule *podStatus) ShouldReap(pod v1.Pod) (bool, string) {
+	reapStatuses := strings.Split(value, ",")
 	status := pod.Status.Reason
-	for _, reapStatus := range rule.reapStatuses {
+	for _, reapStatus := range reapStatuses {
 		if status == reapStatus {
-			return true, fmt.Sprintf("has pod status %s", reapStatus)
+			return reap, fmt.Sprintf("has pod status '%s' in {%s}", reapStatus, value)
 		}
 	}
-	return false, ""
+	return spare, fmt.Sprintf("has pod status '%s' not in {%s}", status, value)
 }

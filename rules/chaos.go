@@ -7,34 +7,27 @@ import (
 	"strconv"
 	"time"
 
-	"k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envChaosChance = "CHAOS_CHANCE"
-
-var _ Rule = (*chaos)(nil)
-
-type chaos struct {
-	chance float64
-}
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func (rule *chaos) load() (bool, string, error) {
+func chaos(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envChaosChance)
 	if !active {
-		return false, "", nil
+		return ignore, "not configured"
 	}
 	chance, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid chaos chance %s", err)
+		panic(fmt.Errorf("failed to parse %s=%s %v", envChaosChance, value, err))
 	}
-	rule.chance = chance
-	return true, fmt.Sprintf("chaos chance %s", value), nil
-}
-
-func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {
-	return rand.Float64() < rule.chance, "was flagged for chaos"
+	random := rand.Float64()
+	if random < chance {
+		return reap, fmt.Sprintf("random number is less than chaos chance %f (%f)", chance, random)
+	}
+	return spare, fmt.Sprintf("random number is greater than or equal chaos chance %f (%f)", chance, random)
 }

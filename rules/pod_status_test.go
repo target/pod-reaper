@@ -5,65 +5,61 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-func testPodFromReason(reason string) v1.Pod {
-	return v1.Pod{
-		Status: v1.PodStatus{
-			Reason: reason,
+func TestPodStatusIgnore(t *testing.T) {
+	os.Unsetenv(envPodStatus)
+	reapResult, message := podStatus(k8v1.Pod{})
+	assert.Equal(t, ignore, reapResult)
+	assert.Equal(t, notConfigured, message)
+}
+
+func TestPodStatus(t *testing.T) {
+	tests := []struct {
+		env        string
+		podStatus  string
+		reapResult result
+		message    string
+	}{
+		{
+			env:        "test",
+			podStatus:  "test",
+			reapResult: reap,
+			message:    "has pod status 'test' in {test}",
 		},
+		{
+			env:        "test",
+			podStatus:  "other",
+			reapResult: spare,
+			message:    "has pod status 'other' not in {test}",
+		},
+		{
+			env:        "test,other",
+			podStatus:  "other",
+			reapResult: reap,
+			message:    "has pod status 'other' in {test,other}",
+		},
+		{
+			env:        "test,other",
+			podStatus:  "neither",
+			reapResult: spare,
+			message:    "has pod status 'neither' not in {test,other}",
+		},
+	}
+	for _, test := range tests {
+		os.Setenv(envPodStatus, test.env)
+		pod := podStatusPod(test.podStatus)
+		reapResult, message := podStatus(pod)
+		assert.Equal(t, test.reapResult, reapResult)
+		assert.Equal(t, test.message, message)
 	}
 }
 
-func TestPodStatusLoad(t *testing.T) {
-	t.Run("load", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envPodStatus, "test-status")
-		loaded, message, err := (&podStatus{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "pod status in [test-status]", message)
-		assert.True(t, loaded)
-	})
-	t.Run("load multiple-statuses", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envPodStatus, "test-status,another-status")
-		podStatus := podStatus{}
-		loaded, message, err := podStatus.load()
-		assert.NoError(t, err)
-		assert.Equal(t, "pod status in [test-status,another-status]", message)
-		assert.True(t, loaded)
-		assert.Equal(t, 2, len(podStatus.reapStatuses))
-		assert.Equal(t, "test-status", podStatus.reapStatuses[0])
-		assert.Equal(t, "another-status", podStatus.reapStatuses[1])
-	})
-	t.Run("no load", func(t *testing.T) {
-		os.Clearenv()
-		loaded, message, err := (&podStatus{}).load()
-		assert.NoError(t, err)
-		assert.Equal(t, "", message)
-		assert.False(t, loaded)
-	})
-}
-
-func TestPodStatusShouldReap(t *testing.T) {
-	t.Run("reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envPodStatus, "test-status,another-status")
-		podStatus := podStatus{}
-		podStatus.load()
-		pod := testPodFromReason("another-status")
-		shouldReap, reason := podStatus.ShouldReap(pod)
-		assert.True(t, shouldReap)
-		assert.Regexp(t, ".*another-status.*", reason)
-	})
-	t.Run("no reap", func(t *testing.T) {
-		os.Clearenv()
-		os.Setenv(envPodStatus, "test-status,another-status")
-		podStatus := podStatus{}
-		podStatus.load()
-		pod := testPodFromReason("not-present")
-		shouldReap, _ := podStatus.ShouldReap(pod)
-		assert.False(t, shouldReap)
-	})
+func podStatusPod(reason string) k8v1.Pod {
+	return k8v1.Pod{
+		Status: k8v1.PodStatus{
+			Reason: reason,
+		},
+	}
 }

@@ -18,6 +18,7 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
 - `REQUIRE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should require
 - `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
+- `LOG_LEVEL` sets the detail of logging
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
@@ -106,14 +107,16 @@ Messages this level and above will be logged. Available logging levels: Debug, I
 ### Example Log
 
 ```json
-{"level":"info","msg":"loaded rule: chaos chance .3","time":"2017-10-18T17:09:25Z"}
-{"level":"info","msg":"loaded rule: maximum run duration 2m","time":"2017-10-18T17:09:25Z"}
-{"level":"info","msg":"executing reap cycle","time":"2017-10-18T17:09:55Z"}
-{"level":"info","msg":"reaping pod","pod":"hello-cloud-deployment-3026746346-bj65k","reasons":["was flagged for chaos","has been running for 3m6.257891269s"],"time":"2017-10-18T17:09:55Z"}
-{"level":"info","msg":"reaping pod","pod":"example-pod-deployment-125971999cgsws","reasons":["was flagged for chaos","has been running for 2m55.269615797s"],"time":"2017-10-18T17:09:55Z"}
-{"level":"info","msg":"executing reap cycle","time":"2017-10-18T17:10:25Z"}
-{"level":"info","msg":"reaping pod","pod":"hello-cloud-deployment-3026746346-grw12","reasons":["was flagged for chaos","has been running for 3m36.054164005s"],"time":"2017-10-18T17:10:25Z"}
-{"level":"info","msg":"pod reaper is exiting","time":"2017-10-18T17:10:46Z"}
+{"level":"debug","msg":"starting reap cycle","time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"coredns-6955765f44-c5vh4","reasons":["random number is greater than or equal chaos chance 0.500000 (0.834684)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"coredns-6955765f44-twd8g","reasons":["random number is greater than or equal chaos chance 0.500000 (0.674312)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"etcd-kind-control-plane","reasons":["random number is greater than or equal chaos chance 0.500000 (0.785060)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"kindnet-5d95w","reasons":["random number is greater than or equal chaos chance 0.500000 (0.625311)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"info","msg":"reaping pod","pod":"kube-apiserver-kind-control-plane","reasons":["random number is less than chaos chance 0.500000 (0.106679)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"kube-controller-manager-kind-control-plane","reasons":["random number is greater than or equal chaos chance 0.500000 (0.500754)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"info","msg":"reaping pod","pod":"kube-proxy-skqbs","reasons":["random number is less than chaos chance 0.500000 (0.490510)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"info","msg":"reaping pod","pod":"kube-scheduler-kind-control-plane","reasons":["random number is less than chaos chance 0.500000 (0.170653)"],"time":"2020-02-28T02:03:36Z"}
+{"level":"debug","msg":"sparing pod","pod":"local-path-provisioner-7745554f7f-x9l46","reasons":["random number is greater than or equal chaos chance 0.500000 (0.874489)"],"time":"2020-02-28T02:03:36Z"}
 ```
 
 ### `LOG_FORMAT`
