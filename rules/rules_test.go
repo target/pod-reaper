@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func testRule(fixedResult result) rule {
-	return func(v1.Pod) (result, string) {
+	return func(k8v1.Pod) (result, string) {
 		return fixedResult, "fixed result"
 	}
 }
@@ -61,7 +61,7 @@ func TestShouldReap(t *testing.T) {
 			spareCount: 1,
 		},
 	}
-	pod := v1.Pod{}
+	pod := k8v1.Pod{}
 	for _, test := range tests {
 		shouldReap, reapReasons, spareReasons := shouldReap(pod, test.rules)
 		assert.Equal(t, test.shouldReap, shouldReap, "unexpected ShouldReap result")

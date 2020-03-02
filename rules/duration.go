@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envMaxDuration = "MAX_DURATION"
 
-func duration(pod v1.Pod) (result, string) {
+func duration(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envMaxDuration)
 	if !active {
 		return ignore, notConfigured

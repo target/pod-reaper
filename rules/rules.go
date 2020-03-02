@@ -1,12 +1,12 @@
 package rules
 
 import (
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const notConfigured = "not configured"
 
-type rule func(v1.Pod) (result, string)
+type rule func(k8v1.Pod) (result, string)
 
 // Rules is the list of all rules
 var rules = []rule{
@@ -19,11 +19,11 @@ var rules = []rule{
 
 // ShouldReap takes a pod and makes an assessment about whether or not the pod should be
 // reaped based on provided reasons for the decision
-func ShouldReap(pod v1.Pod) (bool, []string, []string) {
+func ShouldReap(pod k8v1.Pod) (bool, []string, []string) {
 	return shouldReap(pod, rules)
 }
 
-func shouldReap(pod v1.Pod, rules []rule) (bool, []string, []string) {
+func shouldReap(pod k8v1.Pod, rules []rule) (bool, []string, []string) {
 	var reapReasons []string
 	var spareReasons []string
 	var reapPod = false

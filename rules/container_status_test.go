@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestContainerStatusIgnore(t *testing.T) {
 	os.Unsetenv(envContainerStatus)
-	reapResult, message := containerStatus(v1.Pod{})
+	reapResult, message := containerStatus(k8v1.Pod{})
 	assert.Equal(t, ignore, reapResult)
 	assert.Equal(t, notConfigured, message)
 }
@@ -18,43 +18,43 @@ func TestContainerStatusIgnore(t *testing.T) {
 func TestContainerStatus(t *testing.T) {
 	tests := []struct {
 		env               string
-		containerStatuses []v1.ContainerState
+		containerStatuses []k8v1.ContainerState
 		reapResult        result
 		message           string
 	}{
 		{
 			env:               "test",
-			containerStatuses: []v1.ContainerState{waiting("other")},
+			containerStatuses: []k8v1.ContainerState{waiting("other")},
 			reapResult:        spare,
 			message:           "has no container with status in {test}",
 		},
 		{
 			env:               "test",
-			containerStatuses: []v1.ContainerState{terminated("other")},
+			containerStatuses: []k8v1.ContainerState{terminated("other")},
 			reapResult:        spare,
 			message:           "has no container with status in {test}",
 		},
 		{
 			env:               "test",
-			containerStatuses: []v1.ContainerState{waiting("test")},
+			containerStatuses: []k8v1.ContainerState{waiting("test")},
 			reapResult:        reap,
 			message:           "has container with status 'test' in {test}",
 		},
 		{
 			env:               "test",
-			containerStatuses: []v1.ContainerState{terminated("test")},
+			containerStatuses: []k8v1.ContainerState{terminated("test")},
 			reapResult:        reap,
 			message:           "has container with status 'test' in {test}",
 		},
 		{
 			env:               "test,second",
-			containerStatuses: []v1.ContainerState{terminated("second")},
+			containerStatuses: []k8v1.ContainerState{terminated("second")},
 			reapResult:        reap,
 			message:           "has container with status 'second' in {test,second}",
 		},
 		{
 			env:               "test,second",
-			containerStatuses: []v1.ContainerState{terminated("other")},
+			containerStatuses: []k8v1.ContainerState{terminated("other")},
 			reapResult:        spare,
 			message:           "has no container with status in {test,second}",
 		},
@@ -68,29 +68,29 @@ func TestContainerStatus(t *testing.T) {
 	}
 }
 
-func waiting(reason string) v1.ContainerState {
-	return v1.ContainerState{
-		Waiting: &v1.ContainerStateWaiting{
+func waiting(reason string) k8v1.ContainerState {
+	return k8v1.ContainerState{
+		Waiting: &k8v1.ContainerStateWaiting{
 			Reason: reason,
 		},
 	}
 }
 
-func terminated(reason string) v1.ContainerState {
-	return v1.ContainerState{
-		Terminated: &v1.ContainerStateTerminated{
+func terminated(reason string) k8v1.ContainerState {
+	return k8v1.ContainerState{
+		Terminated: &k8v1.ContainerStateTerminated{
 			Reason: reason,
 		},
 	}
 }
 
-func containerStatePod(containerStates []v1.ContainerState) v1.Pod {
-	var statuses = []v1.ContainerStatus{}
+func containerStatePod(containerStates []k8v1.ContainerState) k8v1.Pod {
+	var statuses = []k8v1.ContainerStatus{}
 	for _, state := range containerStates {
-		statuses = append(statuses, v1.ContainerStatus{State: state})
+		statuses = append(statuses, k8v1.ContainerStatus{State: state})
 	}
-	return v1.Pod{
-		Status: v1.PodStatus{
+	return k8v1.Pod{
+		Status: k8v1.PodStatus{
 			ContainerStatuses: statuses,
 		},
 	}

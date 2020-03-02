@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/pkg/api/unversioned"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestDurationIgnore(t *testing.T) {
 	os.Unsetenv(envMaxDuration)
-	reapResult, message := duration(v1.Pod{})
+	reapResult, message := duration(k8v1.Pod{})
 	assert.Equal(t, ignore, reapResult)
 	assert.Equal(t, "not configured", message)
 }
@@ -24,12 +24,12 @@ func TestDurationInvalid(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Regexp(t, "^failed to parse.*$", err)
 	}()
-	duration(v1.Pod{})
+	duration(k8v1.Pod{})
 }
 
 func TestDurationNoStartTime(t *testing.T) {
 	os.Setenv(envMaxDuration, "1m")
-	reapResult, message := duration(v1.Pod{})
+	reapResult, message := duration(k8v1.Pod{})
 	assert.Equal(t, spare, reapResult)
 	assert.Equal(t, "pod has no start time", message)
 }
@@ -63,8 +63,8 @@ func TestDuration(t *testing.T) {
 	}
 }
 
-func durationPod(startTime time.Time) v1.Pod {
-	pod := v1.Pod{}
+func durationPod(startTime time.Time) k8v1.Pod {
+	pod := k8v1.Pod{}
 	setTime := unversioned.NewTime(startTime)
 	pod.Status.StartTime = &setTime
 	return pod

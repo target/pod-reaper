@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	"k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envMaxUnready = "MAX_UNREADY"
 
-func unready(pod v1.Pod) (result, string) {
+func unready(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envMaxUnready)
 	if !active {
 		return ignore, notConfigured
@@ -19,7 +19,7 @@ func unready(pod v1.Pod) (result, string) {
 	if err != nil {
 		panic(fmt.Errorf("failed to parse %s=%s %v", envMaxUnready, value, err))
 	}
-	readyCondition := getCondition(pod, v1.PodReady)
+	readyCondition := getCondition(pod, k8v1.PodReady)
 	if readyCondition == nil {
 		return spare, "pod does not have a ready condition"
 	}
@@ -35,7 +35,7 @@ func unready(pod v1.Pod) (result, string) {
 	return spare, fmt.Sprintf("has been unready less than %s (%s)", duration, unreadyDuration)
 }
 
-func getCondition(pod v1.Pod, conditionType v1.PodConditionType) *v1.PodCondition {
+func getCondition(pod k8v1.Pod, conditionType k8v1.PodConditionType) *k8v1.PodCondition {
 	for _, condition := range pod.Status.Conditions {
 		if condition.Type == conditionType {
 			return &condition

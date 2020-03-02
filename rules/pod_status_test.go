@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestPodStatusIgnore(t *testing.T) {
 	os.Unsetenv(envPodStatus)
-	reapResult, message := podStatus(v1.Pod{})
+	reapResult, message := podStatus(k8v1.Pod{})
 	assert.Equal(t, ignore, reapResult)
 	assert.Equal(t, notConfigured, message)
 }
@@ -56,9 +56,9 @@ func TestPodStatus(t *testing.T) {
 	}
 }
 
-func podStatusPod(reason string) v1.Pod {
-	return v1.Pod{
-		Status: v1.PodStatus{
+func podStatusPod(reason string) k8v1.Pod {
+	return k8v1.Pod{
+		Status: k8v1.PodStatus{
 			Reason: reason,
 		},
 	}

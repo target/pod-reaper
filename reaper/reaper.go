@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/target/pod-reaper/rules"
@@ -45,10 +45,10 @@ func newReaper() reaper {
 	}
 }
 
-func (reaper reaper) getPods() *v1.PodList {
+func (reaper reaper) getPods() *k8v1.PodList {
 	coreClient := reaper.clientSet.CoreV1()
 	pods := coreClient.Pods(reaper.options.namespace)
-	listOptions := v1.ListOptions{}
+	listOptions := k8v1.ListOptions{}
 	if reaper.options.labelExclusion != nil || reaper.options.labelRequirement != nil {
 		selector := labels.NewSelector()
 		if reaper.options.labelExclusion != nil {
@@ -67,12 +67,12 @@ func (reaper reaper) getPods() *v1.PodList {
 	return podList
 }
 
-func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
+func (reaper reaper) reapPod(pod k8v1.Pod, reasons []string) {
 	logrus.WithFields(logrus.Fields{
 		"pod":     pod.Name,
 		"reasons": reasons,
 	}).Info("reaping pod")
-	deleteOptions := &v1.DeleteOptions{
+	deleteOptions := &k8v1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
 	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)

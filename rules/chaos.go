@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envChaosChance = "CHAOS_CHANCE"
@@ -16,7 +16,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func chaos(pod v1.Pod) (result, string) {
+func chaos(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envChaosChance)
 	if !active {
 		return ignore, "not configured"

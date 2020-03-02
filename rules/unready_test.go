@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/pkg/api/unversioned"
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestUnreadyIgnore(t *testing.T) {
 	os.Unsetenv(envMaxUnready)
-	reapResult, message := unready(v1.Pod{})
+	reapResult, message := unready(k8v1.Pod{})
 	assert.Equal(t, ignore, reapResult)
 	assert.Equal(t, "not configured", message)
 }
@@ -24,12 +24,12 @@ func TestUnreadyInvalid(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Regexp(t, "^failed to parse.*$", err)
 	}()
-	unready(v1.Pod{})
+	unready(k8v1.Pod{})
 }
 
 func TestUnreadyNoReadyTime(t *testing.T) {
 	os.Setenv(envMaxUnready, "10m")
-	reapResult, message := unready(v1.Pod{})
+	reapResult, message := unready(k8v1.Pod{})
 	assert.Equal(t, spare, reapResult)
 	assert.Equal(t, "pod does not have a ready condition", message)
 }
@@ -38,28 +38,28 @@ func TestUnready(t *testing.T) {
 	tests := []struct {
 		env                string
 		lastTransitionTime time.Time
-		readyStatus        v1.ConditionStatus
+		readyStatus        k8v1.ConditionStatus
 		reapResult         result
 		messageRegex       string
 	}{
 		{
 			env:                "1m",
 			lastTransitionTime: time.Now().Add(-10 * time.Minute),
-			readyStatus:        v1.ConditionTrue,
+			readyStatus:        k8v1.ConditionTrue,
 			reapResult:         spare,
 			messageRegex:       "^pod is ready$",
 		},
 		{
 			env:                "9m59s",
 			lastTransitionTime: time.Now().Add(-10 * time.Minute),
-			readyStatus:        v1.ConditionFalse,
+			readyStatus:        k8v1.ConditionFalse,
 			reapResult:         reap,
 			messageRegex:       "^has been unready longer than 9m59s.*$",
 		},
 		{
 			env:                "10m01s",
 			lastTransitionTime: time.Now().Add(-10 * time.Minute),
-			readyStatus:        v1.ConditionFalse,
+			readyStatus:        k8v1.ConditionFalse,
 			reapResult:         spare,
 			messageRegex:       "^has been unready less than 10m1s.*$",
 		},
@@ -73,12 +73,12 @@ func TestUnready(t *testing.T) {
 	}
 }
 
-func testUnreadyPod(lastTransitionTime time.Time, readyStatus v1.ConditionStatus) v1.Pod {
-	return v1.Pod{
-		Status: v1.PodStatus{
-			Conditions: []v1.PodCondition{
-				v1.PodCondition{
-					Type:               v1.PodReady,
+func testUnreadyPod(lastTransitionTime time.Time, readyStatus k8v1.ConditionStatus) k8v1.Pod {
+	return k8v1.Pod{
+		Status: k8v1.PodStatus{
+			Conditions: []k8v1.PodCondition{
+				k8v1.PodCondition{
+					Type:               k8v1.PodReady,
 					LastTransitionTime: unversioned.NewTime(lastTransitionTime),
 					Reason:             "ContainersNotReady",
 					Status:             readyStatus,

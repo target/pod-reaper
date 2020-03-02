@@ -5,12 +5,12 @@ import (
 	"os"
 	"strings"
 
-	v1 "k8s.io/client-go/pkg/api/v1"
+	k8v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const envPodStatus = "POD_STATUSES"
 
-func podStatus(pod v1.Pod) (result, string) {
+func podStatus(pod k8v1.Pod) (result, string) {
 	value, active := os.LookupEnv(envPodStatus)
 	if !active {
 		return ignore, notConfigured
