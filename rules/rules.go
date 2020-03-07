@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/sirupsen/logrus"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 // Rule is an interface defining the two functions needed for pod reaper to use the rule.

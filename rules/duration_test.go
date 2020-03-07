@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func testDurationPod(startTime *time.Time) v1.Pod {
 	pod := v1.Pod{}
 	if startTime != nil {
-		setTime := unversioned.NewTime(*startTime)
+		setTime := metav1.NewTime(*startTime)
 		pod.Status.StartTime = &setTime
 	}
 	return pod
