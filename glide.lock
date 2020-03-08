@@ -1,5 +1,5 @@
-hash: b7c11caa604dd7eb1eba1de72321086b340f380d4ccfec817d3882d897d89115
-updated: 2020-03-07T16:43:00.6334477-05:00
+hash: 4ac30dc10a6c2d74c495ca3e076f69910e4e9051421aab5909dd7f6e10e40fb8
+updated: 2020-03-08T15:14:29.9321766-04:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
@@ -28,6 +28,8 @@ imports:
   - OpenAPIv2
   - compiler
   - extensions
+- name: github.com/imdario/mergo
+  version: 9316a62528ac99aaecb4e47eadd6dc8aa6533d58
 - name: github.com/joonix/log
   version: f5f056244ba320717491aa9a073a2cb4fdc2ff30
 - name: github.com/json-iterator/go
@@ -42,6 +44,8 @@ imports:
   version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/sirupsen/logrus
   version: 839c75faf7f98a33d445d181f3018b5c3409a45e
+- name: github.com/spf13/pflag
+  version: 2e9d26c8c37aae03e3f9d4e90b7116f5accb7cab
 - name: github.com/stretchr/testify
   version: 3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9
   subpackages:
@@ -176,7 +180,7 @@ imports:
 - name: k8s.io/client-go
   version: c68b62b1efa14564a47d67c07f013dc3553937b9
   subpackages:
-  - api/core/v1
+  - core/v1
   - discovery
   - kubernetes
   - kubernetes/scheme
@@ -227,13 +231,18 @@ imports:
   - plugin/pkg/client/auth/exec
   - rest
   - rest/watch
+  - tools/auth
+  - tools/clientcmd
   - tools/clientcmd/api
+  - tools/clientcmd/api/latest
+  - tools/clientcmd/api/v1
   - tools/metrics
   - tools/reference
   - transport
   - util/cert
   - util/connrotation
   - util/flowcontrol
+  - util/homedir
   - util/keyutil
 - name: k8s.io/klog
   version: 2ca9ad30301bf30a8a6e0fa2110db6b8df699a91

@@ -3,14 +3,15 @@ import:
 - package: k8s.io/apimachinery
   version: =v0.17.0
   subpackages:
-    - /pkg/labels
-    - /pkg/selection
+  - pkg/labels
+  - pkg/selection
 - package: k8s.io/client-go
   version: =v0.17.0
   subpackages:
-    - kubernetes
-    - core/v1
-    - rest
+  - kubernetes
+  - core/v1
+  - rest
+  - tools/clientcmd
 - package: github.com/stretchr/testify
   version: ^1.1.4
 - package: github.com/robfig/cron

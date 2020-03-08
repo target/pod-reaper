@@ -7,7 +7,7 @@ COPY glide.* ./
 RUN glide install --strip-vendor
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
-RUN go test $(glide nv)
+RUN go test $(glide nv | grep -v /test/)
 RUN go build -o pod-reaper -a -installsuffix go ./cmd/pod-reaper
 
 # Application
