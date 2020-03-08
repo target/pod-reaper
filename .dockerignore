@@ -1,0 +1,4 @@
+vendor/
+_output/
+examples/
+*.md
