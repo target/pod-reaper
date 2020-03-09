@@ -16,10 +16,4 @@
 
 # This just run e2e tests.
 PRJ_PREFIX="github.com/target/pod-reaper"
-
-kind create cluster
-docker pull kubernetes/pause
-kind load docker-image kubernetes/pause
-kind get kubeconfig > /tmp/admin.conf
 go test ${PRJ_PREFIX}/test/e2e/ -v
-kind delete cluster

@@ -18,4 +18,9 @@ test-unit:
 	./test/run-unit-tests.sh
 
 test-e2e:
+	kind create cluster
+	docker pull kubernetes/pause
+	kind load docker-image kubernetes/pause
+	kind get kubeconfig > /tmp/admin.conf
 	./test/run-e2e-tests.sh
+	kind delete cluster
