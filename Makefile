@@ -3,6 +3,8 @@
 VERSION?=$(shell git describe --tags)
 IMAGE:=pod-reaper:$(VERSION)
 
+CLUSTER_NAME=e2e 
+
 all: build
 
 build:
@@ -18,9 +20,6 @@ test-unit:
 	./test/run-unit-tests.sh
 
 test-e2e:
-	kind create cluster
-	docker pull kubernetes/pause
-	kind load docker-image kubernetes/pause
-	kind get kubeconfig > /tmp/admin.conf
+	./test/create-cluster.sh $(CLUSTER_NAME)
 	./test/run-e2e-tests.sh
-	kind delete cluster
+	./test/delete-cluster.sh $(CLUSTER_NAME)
