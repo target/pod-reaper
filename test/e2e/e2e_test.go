@@ -20,14 +20,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/pod-reaper/cmd/pod-reaper/app"
+	"github.com/target/pod-reaper/internal/pkg/client"
 )
 
 func TestE2E(t *testing.T) {
 	// If we have reached here, it means cluster would have been already setup and the kubeconfig file should
 	// be in /tmp directory as admin.conf.
+	client, err := client.CreateClient("/tmp/admin.conf")
+	assert.NoError(t, err)
+
+	os.Clearenv()
 	os.Setenv("RUN_DURATION", "1s")
 	os.Setenv("CHAOS_CHANCE", "0.5")
-	reaper := app.NewReaper("/tmp/admin.conf")
+	reaper := app.NewReaper(client)
 	reaper.Harvest()
 }

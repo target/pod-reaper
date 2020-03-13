@@ -5,52 +5,34 @@ import (
 
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
+	"github.com/target/pod-reaper/internal/pkg/client"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Reaper struct {
-	clientSet *kubernetes.Clientset
+	clientSet kubernetes.Interface
 	options   options
 }
 
-func NewReaper(kubeconfig string) Reaper {
-	var config *rest.Config
-	var err error
-
-	if len(kubeconfig) != 0 {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+func NewReaper(clientSet kubernetes.Interface) Reaper {
+	if clientSet == nil {
+		client, err := client.CreateClient("")
 		if err != nil {
-			logrus.WithError(err).Panic("unable to build config from kubeconfig file")
-			panic(err.Error())
-		}
-	} else {
-		config, err = rest.InClusterConfig()
-		if err != nil {
-			logrus.WithError(err).Panic("error getting in cluster kubernetes config")
+			logrus.WithError(err).Panic("unable to get client set for in cluster kubernetes config")
 			panic(err)
 		}
+		clientSet = client
 	}
 
-	clientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		logrus.WithError(err).Panic("unable to get client set for in cluster kubernetes config")
-		panic(err)
-	}
-	if clientSet == nil {
-		message := "kubernetes client set cannot be nil"
-		logrus.Panic(message)
-		panic(message)
-	}
 	options, err := loadOptions()
 	if err != nil {
 		logrus.WithError(err).Panic("error loading options")
 		panic(err)
 	}
+
 	return Reaper{
 		clientSet: clientSet,
 		options:   options,

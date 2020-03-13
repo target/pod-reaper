@@ -20,7 +20,7 @@ func main() {
 	logFormat := getLogFormat()
 	logrus.SetFormatter(logFormat)
 
-	reaper := app.NewReaper("")
+	reaper := app.NewReaper(nil)
 	reaper.Harvest()
 	logrus.Info("pod reaper is exiting")
 }

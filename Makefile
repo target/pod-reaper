@@ -1,6 +1,7 @@
 .PHONY: test
 
 VERSION?=$(shell git describe --tags)
+REPOSITORY=target
 IMAGE:=pod-reaper:$(VERSION)
 
 CLUSTER_NAME=e2e 
