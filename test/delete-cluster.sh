@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=$1
+NAME=${1:-kind}
 
 kind get clusters | grep "${NAME}" > /dev/null
 if [ $? -eq 0 ]; then

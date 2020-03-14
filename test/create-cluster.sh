@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=$1
+NAME=${1:-kind}
 KUBECONFIG=/tmp/admin.conf
 
 kind get clusters | grep "${NAME}" > /dev/null
