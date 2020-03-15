@@ -23,10 +23,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// CreateClient creates a new Kubernets clientset with the given config or in cluster config
 func CreateClient(kubeconfig string) (clientset.Interface, error) {
 	var cfg *rest.Config
 	if len(kubeconfig) != 0 {
-		master, err := GetMasterFromKubeconfig(kubeconfig)
+		master, err := getMasterFromKubeconfig(kubeconfig)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to parse kubeconfig file: %v ", err)
 		}
@@ -47,7 +48,7 @@ func CreateClient(kubeconfig string) (clientset.Interface, error) {
 	return clientset.NewForConfig(cfg)
 }
 
-func GetMasterFromKubeconfig(filename string) (string, error) {
+func getMasterFromKubeconfig(filename string) (string, error) {
 	config, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		return "", err

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pause
+spec:
+  containers:
+    - name: pause
+      image: kubernetes/pause
+      imagePullPolicy: Never
+  restartPolicy: Never

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unready
+spec:
+  containers:
+    - name: unready
+      image: alpine
+      imagePullPolicy: Never
+      command:
+        - tail
+        - -f
+        - /dev/null
+      readinessProbe:
+        exec:
+          command:
+            - exit 1
+        failureThreshold: 1
+        periodSeconds: 1
+        successThreshold: 1
+  restartPolicy: Never

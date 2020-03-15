@@ -16,4 +16,6 @@
 
 # This just run e2e tests.
 PRJ_PREFIX="github.com/target/pod-reaper"
+
+go clean -testcache
 go test ${PRJ_PREFIX}/test/e2e/ -v
