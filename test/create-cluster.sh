@@ -15,7 +15,6 @@ else
 fi
 
 load_image kubernetes/pause
-load_image alpine
 kind get kubeconfig --name "${NAME}" > ${KUBECONFIG}
 
 echo "Output kubeconfig to ${KUBECONFIG}"

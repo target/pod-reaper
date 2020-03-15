@@ -20,7 +20,7 @@ type KubeUtil struct {
 }
 
 const retryInterval = 500 * time.Millisecond
-const defaultTimeout = 60 * time.Second
+const defaultTimeout = 30 * time.Second
 
 // NewKubeUtil returns a new KubeUtil object that interacts with the given Kubernetes cluster
 func NewKubeUtil(client clientset.Interface) KubeUtil {

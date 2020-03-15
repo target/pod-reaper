@@ -5,17 +5,14 @@ metadata:
 spec:
   containers:
     - name: unready
-      image: alpine
+      image: kubernetes/pause
       imagePullPolicy: Never
-      command:
-        - tail
-        - -f
-        - /dev/null
       readinessProbe:
-        exec:
-          command:
-            - exit 1
+        httpGet:
+          path: /ready
+          port: 80
+        initialDelaySeconds: 0
+        periodSeconds: 1
         failureThreshold: 1
         periodSeconds: 1
-        successThreshold: 1
   restartPolicy: Never
