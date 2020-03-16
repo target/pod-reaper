@@ -5,7 +5,6 @@ import (
 
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
-	"github.com/target/pod-reaper/internal/pkg/client"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -19,14 +18,10 @@ type Reaper struct {
 
 func NewReaper(clientSet kubernetes.Interface) Reaper {
 	if clientSet == nil {
-		client, err := client.CreateClient("")
-		if err != nil {
-			logrus.WithError(err).Panic("unable to get client set for in cluster kubernetes config")
-			panic(err)
-		}
-		clientSet = client
+		message := "kubernetes client set cannot be nil"
+		logrus.Panic(message)
+		panic(message)
 	}
-
 	options, err := loadOptions()
 	if err != nil {
 		logrus.WithError(err).Panic("error loading options")

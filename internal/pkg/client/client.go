@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// CreateClient creates a new Kubernets clientset with the given config or in cluster config
+// CreateClient creates a new Kubernets clientset with the given config or in-cluster config
 func CreateClient(kubeconfig string) (clientset.Interface, error) {
 	var cfg *rest.Config
 	if len(kubeconfig) != 0 {
