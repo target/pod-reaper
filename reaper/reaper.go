@@ -5,9 +5,10 @@ import (
 
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -46,7 +47,7 @@ func newReaper() reaper {
 func (reaper reaper) getPods() *v1.PodList {
 	coreClient := reaper.clientSet.CoreV1()
 	pods := coreClient.Pods(reaper.options.namespace)
-	listOptions := v1.ListOptions{}
+	listOptions := metav1.ListOptions{}
 	if reaper.options.labelExclusion != nil || reaper.options.labelRequirement != nil {
 		selector := labels.NewSelector()
 		if reaper.options.labelExclusion != nil {
@@ -70,7 +71,7 @@ func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
 		"pod":     pod.Name,
 		"reasons": reasons,
 	}).Info("reaping pod")
-	deleteOptions := &v1.DeleteOptions{
+	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
 	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
@@ -93,10 +94,18 @@ func (reaper reaper) scytheCycle() {
 	}
 }
 
+func cronWithOptionalSeconds() *cron.Cron {
+	return cron.New(
+		cron.WithParser(
+			cron.NewParser(
+				// include optional seconds
+				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)))
+}
+
 func (reaper reaper) harvest() {
 	runForever := reaper.options.runDuration == 0
-	schedule := cron.New()
-	err := schedule.AddFunc(reaper.options.schedule, func() {
+	schedule := cronWithOptionalSeconds()
+	_, err := schedule.AddFunc(reaper.options.schedule, func() {
 		reaper.scytheCycle()
 	})
 
