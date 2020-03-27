@@ -8,8 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func init() {
@@ -17,7 +17,7 @@ func init() {
 }
 
 func testPod() v1.Pod {
-	startTime := unversioned.NewTime(time.Now().Add(-2 * time.Minute))
+	startTime := metav1.NewTime(time.Now().Add(-2 * time.Minute))
 	return v1.Pod{
 		Status: v1.PodStatus{
 			StartTime: &startTime,

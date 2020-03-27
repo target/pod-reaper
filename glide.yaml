@@ -1,25 +1,21 @@
 package: github.com/target/pod-reaper
 import:
 - package: k8s.io/apimachinery
-  version: c1b2a29e2e9d121b9b7d818cb0d84d8098783236
+  version: =v0.17.0
   subpackages:
-    - /pkg/labels
-    - /pkg/selection
+  - pkg/labels
+  - pkg/selection
 - package: k8s.io/client-go
-  version: =v2.0.0
+  version: =v0.17.0
   subpackages:
-    - kubernetes
-    - pkg/api
-    - pkg/api/unversioned
-    - rest
-- package: k8s.io/client-go
-  version: =v2.0.0
-  subpackages:
-    - pkg/api/unversioned
+  - kubernetes
+  - core/v1
+  - rest
+  - tools/clientcmd
 - package: github.com/stretchr/testify
   version: ^1.1.4
 - package: github.com/robfig/cron
-  version: ^1.0.0
+  version: ^3.0.0
 - package: github.com/sirupsen/logrus
   version: ^1.0.0
 - package: github.com/docker/distribution
@@ -27,4 +23,4 @@ import:
 - package: github.com/joonix/log
   version: =v0.1
 - package: github.com/davecgh/go-spew
-  version: =v1.1.0
+  version: v1.1.1

@@ -51,7 +51,7 @@ Controls the grace period between a soft pod termination and a hard termination.
 
 Default value: "@every 1m"
 
-Controls how frequently pod-reaper queries kubernetes for pods. The format follows the upstream cron library https://godoc.org/github.com/robfig/cron. For most use cases, the interval format `@every 1h2m3s` is sufficient. But more complex use cases can make use of the `* * * * *` notation.
+Controls how frequently pod-reaper queries kubernetes for pods. The format follows the upstream cron library https://godoc.org/github.com/robfig/cron. For most use cases, the interval format `@every 1h2m3s` is sufficient. But more complex use cases can make use of the `* * * * *` notation. The cron parser used can optionally support seconds if a sixth parameter is add. `12 * * * * *` for example will run on the 12th second of every minute.
 
 ### `RUN_DURATION`
 

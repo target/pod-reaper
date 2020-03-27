@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/api/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func testUnreadyPod(lastTransitionTime *time.Time) v1.Pod {
 	pod := v1.Pod{}
 	if lastTransitionTime != nil {
-		setTime := unversioned.NewTime(*lastTransitionTime)
+		setTime := metav1.NewTime(*lastTransitionTime)
 		pod.Status.Conditions = []v1.PodCondition{
 			v1.PodCondition{
 				Type:               v1.PodReady,

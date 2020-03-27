@@ -99,6 +99,9 @@ spec:
           # randomly flag 30% of pods whenever they are checked
           - name: CHAOS_CHANCE
             value: ".3"
+          # increase logging
+          - name: LOG_LEVEL
+            value: debug
 
       - name: chaos # reaper 2
         image: target/pod-reaper
@@ -110,12 +113,15 @@ spec:
             cpu: 20m
             memory: 20Mi
         env:
-          # cron job based schedule
+          # cron job based schedule (with seconds)
           - name: SCHEDULE
-            value: "0/5 * * * *"
+            value: "15 * * * * *"
           # randomly flag 5% of pods whenever they are checked
           - name: CHAOS_CHANCE
             value: ".05"
+          # increase logging
+          - name: LOG_LEVEL
+            value: debug
 
       - name: error # reaper 3
         image: target/pod-reaper
@@ -130,7 +136,10 @@ spec:
         env:
           # check pods every 3 min
           - name: SCHEDULE
-            value: "@every 3m"
+            value: "0/3 * * * *"
           # check if container status is in the set  { Error, ErrImagePull, ImagePullBackOff }
           - name: CONTAINER_STATUSES
             value: "Error,ErrImagePull,ImagePullBackOff"
+          # increase logging
+          - name: LOG_LEVEL
+            value: debug
