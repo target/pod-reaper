@@ -67,19 +67,26 @@ func (reaper reaper) getPods() *v1.PodList {
 }
 
 func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
-	logrus.WithFields(logrus.Fields{
-		"pod":     pod.Name,
-		"reasons": reasons,
-	}).Info("reaping pod")
 	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
-	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
-	if err != nil {
-		// log the error, but continue on
+	if reaper.options.dryRun {
 		logrus.WithFields(logrus.Fields{
-			"pod": pod.Name,
-		}).WithError(err).Warn("unable to delete pod", err)
+			"pod":     pod.Name,
+			"reasons": reasons,
+		}).Info("pod would be reaped but pod-reaper is in dry-run mode")
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"pod":     pod.Name,
+			"reasons": reasons,
+		}).Info("reaping pod")
+		err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+		if err != nil {
+			// log the error, but continue on
+			logrus.WithFields(logrus.Fields{
+				"pod": pod.Name,
+			}).WithError(err).Warn("unable to delete pod", err)
+		}
 	}
 }
 

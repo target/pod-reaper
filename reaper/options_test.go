@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"io/ioutil"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -148,6 +149,41 @@ func TestOptions(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, requirement)
 			assert.Equal(t, "test-key in (test-value1,test-value2)", labels.NewSelector().Add(*requirement).String())
+		})
+	})
+	t.Run("dry-run", func(t *testing.T) {
+		t.Run("false", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envDryRun, "false")
+			dryRun, err := dryRun()
+			assert.NoError(t, err)
+			assert.False(t, dryRun)
+		})
+		t.Run("true", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envDryRun, "true")
+			dryRun, err := dryRun()
+			assert.NoError(t, err)
+			assert.True(t, dryRun)
+		})
+		t.Run("true by number", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envDryRun, "1")
+			dryRun, err := dryRun()
+			assert.NoError(t, err)
+			assert.True(t, dryRun)
+		})
+		t.Run("invalid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envDryRun, "outside expected values")
+			_, err := dryRun()
+			assert.Error(t, err)
+		})
+		t.Run("not set", func(t *testing.T) {
+			os.Clearenv()
+			dryRun, err := dryRun()
+			assert.NoError(t, err)
+			assert.False(t, dryRun)
 		})
 	})
 }

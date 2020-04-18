@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ const envExcludeLabelKey = "EXCLUDE_LABEL_KEY"
 const envExcludeLabelValues = "EXCLUDE_LABEL_VALUES"
 const envRequireLabelKey = "REQUIRE_LABEL_KEY"
 const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
+const envDryRun = "DRY_RUN"
 
 type options struct {
 	namespace        string
@@ -29,6 +31,7 @@ type options struct {
 	runDuration      time.Duration
 	labelExclusion   *labels.Requirement
 	labelRequirement *labels.Requirement
+	dryRun           bool
 	rules            rules.Rules
 }
 
@@ -109,6 +112,14 @@ func labelRequirement() (*labels.Requirement, error) {
 	return labelRequirement, nil
 }
 
+func dryRun() (bool, error) {
+	value, exists := os.LookupEnv(envDryRun)
+	if !exists {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
 	options.gracePeriod, err = gracePeriod()
@@ -125,6 +136,10 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.labelRequirement, err = labelRequirement()
+	if err != nil {
+		return options, err
+	}
+	options.dryRun, err = dryRun()
 	if err != nil {
 		return options, err
 	}
