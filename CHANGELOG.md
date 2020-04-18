@@ -1,5 +1,8 @@
 # pod-reaper: kills pods dead
 
+### 2.7.0
+- add `DRY_RUN` mode
+
 ### 2.6.0
 - adjusted cron `SCHEDULE` for optional seconds, non optional day of week
 
