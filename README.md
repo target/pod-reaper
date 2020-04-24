@@ -88,6 +88,12 @@ A pod will be excluded from the pod-reaper if the pod has a metadata label has a
 
 These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
 
+### `DRY_RUN`
+
+Deafult value: unset (which will behave as if it were set to "false")
+
+Acceptable values are 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False. Any other values will error. If the provided value is one of the "true" values then pod reaper will do select pods for reaper but will not actually kill any pods. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because the reaper is in dry-run mode.
+
 ## Logging
 
 Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus). 
