@@ -3,7 +3,6 @@ module github.com/target/pod-reaper
 go 1.13
 
 require (
-	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/joonix/log v0.0.0-20190130132305-f5f056244ba3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/robfig/cron/v3 v3.0.1
