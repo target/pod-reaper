@@ -151,6 +151,42 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, "test-key in (test-value1,test-value2)", labels.NewSelector().Add(*requirement).String())
 		})
 	})
+	t.Run("annotation requirement", func(t *testing.T) {
+		t.Run("default", func(t *testing.T) {
+			os.Clearenv()
+			requirement, err := annotationRequirement()
+			assert.NoError(t, err)
+			assert.Nil(t, requirement)
+		})
+		t.Run("only key", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envRequireAnnotationKey, "test-key")
+			_, err := annotationRequirement()
+			assert.Error(t, err)
+		})
+		t.Run("only values", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envRequireAnnotationValues, "test-value1,test-value2")
+			_, err := annotationRequirement()
+			assert.Error(t, err)
+		})
+		t.Run("invalid key", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envRequireAnnotationKey, "keys cannot have spaces")
+			os.Setenv(envRequireAnnotationValues, "test-value1,test-value2")
+			_, err := annotationRequirement()
+			assert.Error(t, err)
+		})
+		t.Run("valid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envRequireAnnotationKey, "test-key")
+			os.Setenv(envRequireAnnotationValues, "test-value1,test-value2")
+			requirement, err := annotationRequirement()
+			assert.NoError(t, err)
+			assert.NotNil(t, requirement)
+			assert.Equal(t, "test-key in (test-value1,test-value2)", labels.NewSelector().Add(*requirement).String())
+		})
+	})
 	t.Run("dry-run", func(t *testing.T) {
 		t.Run("false", func(t *testing.T) {
 			os.Clearenv()
