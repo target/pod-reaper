@@ -128,7 +128,7 @@ func annotationRequirement() (*labels.Requirement, error) {
 	annotationValues := strings.Split(annotationValue, ",")
 	annotationRequirement, err := labels.NewRequirement(annotationKey, selection.In, annotationValues)
 	if err != nil {
-		return nil, fmt.Errorf("could not create requirement annotation: %s", err)
+		return nil, fmt.Errorf("could not create annotation requirement: %s", err)
 	}
 	return annotationRequirement, nil
 }
