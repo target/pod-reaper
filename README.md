@@ -18,6 +18,8 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
 - `REQUIRE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should require
 - `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
+- `REQUIRE_ANNOTATION_KEY` pod metadata annotation (of key-value pair) that pod-reaper should require
+- `REQUIRE_ANNOTATION_VALUES` comma-separated list of metadata annotation values (of key-value pair) that pod-reaper should require
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
@@ -87,6 +89,10 @@ A pod will be excluded from the pod-reaper if the pod has a metadata label has a
 ### `REQUIRE_LABEL_KEY` and `REQUIRE_LABEL_VALUES`
 
 These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
+
+### `REQUIRE_ANNOTATION_KEY` and `REQUIRE_ANNOTATION_VALUES`
+
+These environment variables build a annotation selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
 
 ### `DRY_RUN`
 
