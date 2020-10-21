@@ -1,0 +1,33 @@
+---
+# service account for running pod-reaper
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reaper-service-account
+  namespace: {{.Release.Namespace}}
+
+---
+# minimal permissions required for running pod-reaper at cluster level
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: pod-reaper-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "delete"]
+
+---
+# binding the above cluster role (permissions) to the above service account
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-reaper-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-reaper-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: pod-reaper-service-account
+  namespace: {{.Release.Namespace}}

@@ -1,0 +1,39 @@
+{{- range $k, $v := .Values.reapers }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Chart.Name }}-{{ $k }}
+  namespace: {{$.Release.Namespace}}
+  labels:
+    chart: "{{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}"
+    app: {{ $.Chart.Name }}-{{ $k }}
+    release: "{{ $.Release.Name }}"
+    heritage: "{{ $.Release.Service }}"
+spec:
+  selector:
+    matchLabels:
+      app: {{ $.Chart.Name }}-{{ $k }}
+  template:
+    metadata:
+      labels:
+        app: {{ $.Chart.Name }}-{{ $k }}
+        release: {{ $.Release.Name }}
+    spec:
+      serviceAccountName: pod-reaper-service-account
+      containers:
+        - name: {{ $.Chart.Name }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          env:
+          {{- range $envkey, $envvalue := $v }}
+          {{- if $envvalue }}
+            - name: {{ upper $envkey}}
+              value: "{{$envvalue}}"
+          {{- end }}
+          {{- end }}
+          resources:
+{{ toYaml $.Values.resources | indent 12 }}
+
+---
+
+{{- end -}}
