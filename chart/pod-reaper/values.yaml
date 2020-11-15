@@ -1,0 +1,38 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: target/pod-reaper
+  tag: 2.8.0
+
+# A set of named reapers
+# Example config:
+#
+#  test-reaper:
+#    namespace: "" # ie all
+#    grace_period: 10m
+#    schedule: "@every 1m"
+#    run_duration: "0s" # ie indefinitely
+#    exclude_label_key: ""
+#    exclude_label_values: ""
+#    require_label_key: ""
+#    require_label_values: ""
+#    require_annotation_key: ""
+#    require_annotation_values: ""
+#    dry_run: "false"
+#    log_level: "Info"
+#    log_format: "Logrus"
+#    chaos_chance: ""
+#    container_statuses: ""
+#    pod_statuses: ""
+#    max_duration: ""
+#    max_unready: ""
+reapers: {}
+
+resources:
+  limits:
+    cpu: 30m
+    memory: 30Mi
+  requests:
+    cpu: 20m
+    memory: 20Mi
