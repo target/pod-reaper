@@ -200,8 +200,8 @@ Enabled and configured by setting the environment variable `MAX_UNREADY` with a 
 
 Pod reaper uses the permissions of the pod's service account to list and delete pods. Unless specified, the service account used will be the default service account in the pod's namespace. By default, and in most cases, the default service account will not have the neccessary permissions to list and delete pods.
 
-- Cluster Wide Permissions: [example](examples/cluster-permissions.yml)
-- Namespace Specific Permissions: [example](examples/namespace-permissions.yml)
+- Cluster Wide Permissions: [example](https://github.com/target/pod-reaper/blob/master/examples/cluster-permissions.yml)
+- Namespace Specific Permissions: [example](https://github.com/target/pod-reaper/blob/master/examples/namespace-permissions.yml)
 
 ### Combining Rules
 
