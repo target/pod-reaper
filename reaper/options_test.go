@@ -222,6 +222,39 @@ func TestOptions(t *testing.T) {
 			assert.False(t, dryRun)
 		})
 	})
+	t.Run("minimum replicas", func(t *testing.T) {
+		t.Run("valid number", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMinimumReplicas, "1")
+			minimumReplicas, err := minimumReplicas()
+			assert.NoError(t, err)
+			assert.Equal(t, 1, minimumReplicas)
+		})
+		t.Run("invalid value", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMinimumReplicas, "lizard")
+			_, err := minimumReplicas()
+			assert.Error(t, err)
+		})
+		t.Run("invalid number", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMinimumReplicas, "-1")
+			_, err := minimumReplicas()
+			assert.Error(t, err)
+		})
+		t.Run("not an integer", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMinimumReplicas, "1.12")
+			_, err := minimumReplicas()
+			assert.Error(t, err)
+		})
+		t.Run("not set", func(t *testing.T) {
+			os.Clearenv()
+			minimumReplicas, err := minimumReplicas()
+			assert.NoError(t, err)
+			assert.Equal(t, 0, minimumReplicas)
+		})
+	})
 }
 
 func TestOptionsLoad(t *testing.T) {

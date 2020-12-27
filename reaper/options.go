@@ -25,6 +25,7 @@ const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
 const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
 const envDryRun = "DRY_RUN"
+const envMinimumReplicas = "MINIMUM_REPLICAS"
 
 type options struct {
 	namespace             string
@@ -35,6 +36,7 @@ type options struct {
 	labelRequirement      *labels.Requirement
 	annotationRequirement *labels.Requirement
 	dryRun                bool
+	replicaSafety         int
 	rules                 rules.Rules
 }
 
@@ -141,6 +143,22 @@ func dryRun() (bool, error) {
 	return strconv.ParseBool(value)
 }
 
+func minimumReplicas() (int, error) {
+	value, exists := os.LookupEnv(envMinimumReplicas)
+	if !exists {
+		return 0, nil
+	}
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		return intValue, err
+	}
+	if intValue < 0 {
+		err = fmt.Errorf("minium replica safety must be at least 0: was %d", intValue)
+		return intValue, err
+	}
+	return intValue, nil
+}
+
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
 	options.gracePeriod, err = gracePeriod()
@@ -165,6 +183,10 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.dryRun, err = dryRun()
+	if err != nil {
+		return options, err
+	}
+	options.replicaSafety, err = minimumReplicas()
 	if err != nil {
 		return options, err
 	}
