@@ -78,7 +78,7 @@ func (reaper reaper) getPods() *v1.PodList {
 	return podList
 }
 
-func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
+func (reaper reaper) reapPod(pod v1.Pod, replicaSafety replicaSafety, reasons []string) {
 	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
@@ -87,28 +87,37 @@ func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
 			"pod":     pod.Name,
 			"reasons": reasons,
 		}).Info("pod would be reaped but pod-reaper is in dry-run mode")
-	} else {
+		return
+	}
+	isSafe, message := replicaSafety.isSafe(pod)
+	if ! isSafe {
 		logrus.WithFields(logrus.Fields{
 			"pod":     pod.Name,
 			"reasons": reasons,
-		}).Info("reaping pod")
-		err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
-		if err != nil {
-			// log the error, but continue on
-			logrus.WithFields(logrus.Fields{
-				"pod": pod.Name,
-			}).WithError(err).Warn("unable to delete pod", err)
-		}
+		}).Info(message)
+		return
+	}
+	logrus.WithFields(logrus.Fields{
+		"pod":     pod.Name,
+		"reasons": reasons,
+	}).Info("reaping pod")
+	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+	if err != nil {
+		// log the error, but continue on
+		logrus.WithFields(logrus.Fields{
+			"pod": pod.Name,
+		}).WithError(err).Warn("unable to delete pod", err)
 	}
 }
 
 func (reaper reaper) scytheCycle() {
 	logrus.Debug("starting reap cycle")
 	pods := reaper.getPods()
+	replicaSafety := newReplicaSafety(reaper.options.replicaSafety, pods)
 	for _, pod := range pods.Items {
 		shouldReap, reasons := reaper.options.rules.ShouldReap(pod)
 		if shouldReap {
-			reaper.reapPod(pod, reasons)
+			reaper.reapPod(pod, replicaSafety, reasons)
 		}
 	}
 }
