@@ -43,6 +43,15 @@ func (k *KubeUtil) ApplyPodManifest(namespace string, path string) (*v1.Pod, err
 		return nil, err
 	}
 
+	serviceAccountName := pod.Spec.ServiceAccountName
+	if serviceAccountName == "" {
+		serviceAccountName = "default"
+	}
+	err = k.WaitForServiceAccountExists(namespace, serviceAccountName)
+	if err != nil {
+		return nil, err
+	}
+
 	return k.client.CoreV1().Pods(namespace).Create(pod)
 }
 
@@ -69,5 +78,16 @@ func (k *KubeUtil) WaitForPodToDie(namespace string, name string) error {
 			return true, nil
 		}
 		return false, err
+	})
+}
+
+// WaitForServiceAccountExists waits until the ServiceAccount exists or timeout is reached
+func (k *KubeUtil) WaitForServiceAccountExists(namespace string, name string) error {
+	return wait.PollImmediate(retryInterval, k.timeout, func() (bool, error) {
+		serviceAccounts := k.client.CoreV1().ServiceAccounts(namespace)
+		if _, err := serviceAccounts.Get(name, metav1.GetOptions{}); err == nil {
+			return true, nil
+		}
+		return false, nil
 	})
 }
