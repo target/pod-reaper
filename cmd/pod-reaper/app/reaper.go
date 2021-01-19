@@ -3,7 +3,7 @@ package app
 import (
 	"time"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,23 +53,42 @@ func (reaper Reaper) getPods() *v1.PodList {
 		logrus.WithError(err).Panic("unable to get pods from the cluster")
 		panic(err)
 	}
+	if reaper.options.annotationRequirement != nil {
+		filteredList := []v1.Pod{}
+		for _, pod := range podList.Items {
+			// convert the pod's annotations to an equivalent label selector
+			selector := labels.Set(pod.Annotations)
+			// include pod if its annotations match the selector
+			if reaper.options.annotationRequirement.Matches(selector) {
+				filteredList = append(filteredList, pod)
+			}
+		}
+		podList.Items = filteredList
+	}
 	return podList
 }
 
 func (reaper Reaper) reapPod(pod v1.Pod, reasons []string) {
-	logrus.WithFields(logrus.Fields{
-		"pod":     pod.Name,
-		"reasons": reasons,
-	}).Info("reaping pod")
 	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
-	err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
-	if err != nil {
-		// log the error, but continue on
+	if reaper.options.dryRun {
 		logrus.WithFields(logrus.Fields{
-			"pod": pod.Name,
-		}).WithError(err).Warn("unable to delete pod", err)
+			"pod":     pod.Name,
+			"reasons": reasons,
+		}).Info("pod would be reaped but pod-reaper is in dry-run mode")
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"pod":     pod.Name,
+			"reasons": reasons,
+		}).Info("reaping pod")
+		err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+		if err != nil {
+			// log the error, but continue on
+			logrus.WithFields(logrus.Fields{
+				"pod": pod.Name,
+			}).WithError(err).Warn("unable to delete pod", err)
+		}
 	}
 }
 
@@ -84,10 +103,18 @@ func (reaper Reaper) scytheCycle() {
 	}
 }
 
+func cronWithOptionalSeconds() *cron.Cron {
+	return cron.New(
+		cron.WithParser(
+			cron.NewParser(
+				// include optional seconds
+				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)))
+}
+
 func (reaper Reaper) Harvest() {
 	runForever := reaper.options.runDuration == 0
-	schedule := cron.New()
-	err := schedule.AddFunc(reaper.options.schedule, func() {
+	schedule := cronWithOptionalSeconds()
+	_, err := schedule.AddFunc(reaper.options.schedule, func() {
 		reaper.scytheCycle()
 	})
 

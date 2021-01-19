@@ -18,6 +18,8 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
 - `REQUIRE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should require
 - `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
+- `REQUIRE_ANNOTATION_KEY` pod metadata annotation (of key-value pair) that pod-reaper should require
+- `REQUIRE_ANNOTATION_VALUES` comma-separated list of metadata annotation values (of key-value pair) that pod-reaper should require
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
@@ -51,7 +53,7 @@ Controls the grace period between a soft pod termination and a hard termination.
 
 Default value: "@every 1m"
 
-Controls how frequently pod-reaper queries kubernetes for pods. The format follows the upstream cron library https://godoc.org/github.com/robfig/cron. For most use cases, the interval format `@every 1h2m3s` is sufficient. But more complex use cases can make use of the `* * * * *` notation.
+Controls how frequently pod-reaper queries kubernetes for pods. The format follows the upstream cron library https://godoc.org/github.com/robfig/cron. For most use cases, the interval format `@every 1h2m3s` is sufficient. But more complex use cases can make use of the `* * * * *` notation. The cron parser used can optionally support seconds if a sixth parameter is add. `12 * * * * *` for example will run on the 12th second of every minute.
 
 ### `RUN_DURATION`
 
@@ -87,6 +89,16 @@ A pod will be excluded from the pod-reaper if the pod has a metadata label has a
 ### `REQUIRE_LABEL_KEY` and `REQUIRE_LABEL_VALUES`
 
 These environment variables build a label selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
+
+### `REQUIRE_ANNOTATION_KEY` and `REQUIRE_ANNOTATION_VALUES`
+
+These environment variables build a annotation selector that pods must match in order to be reaped. Use them the same way as you would `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`.
+
+### `DRY_RUN`
+
+Deafult value: unset (which will behave as if it were set to "false")
+
+Acceptable values are 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False. Any other values will error. If the provided value is one of the "true" values then pod reaper will do select pods for reaper but will not actually kill any pods. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because the reaper is in dry-run mode.
 
 ## Logging
 
@@ -188,8 +200,8 @@ Enabled and configured by setting the environment variable `MAX_UNREADY` with a 
 
 Pod reaper uses the permissions of the pod's service account to list and delete pods. Unless specified, the service account used will be the default service account in the pod's namespace. By default, and in most cases, the default service account will not have the neccessary permissions to list and delete pods.
 
-- Cluster Wide Permissions: [example](examples/cluster-permissions.yml)
-- Namespace Specific Permissions: [example](examples/namespace-permissions.yml)
+- Cluster Wide Permissions: [example](https://github.com/target/pod-reaper/blob/master/examples/cluster-permissions.yml)
+- Namespace Specific Permissions: [example](https://github.com/target/pod-reaper/blob/master/examples/namespace-permissions.yml)
 
 ### Combining Rules
 

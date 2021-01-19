@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,15 +22,20 @@ const envExcludeLabelKey = "EXCLUDE_LABEL_KEY"
 const envExcludeLabelValues = "EXCLUDE_LABEL_VALUES"
 const envRequireLabelKey = "REQUIRE_LABEL_KEY"
 const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
+const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
+const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
+const envDryRun = "DRY_RUN"
 
 type options struct {
-	namespace        string
-	gracePeriod      *int64
-	schedule         string
-	runDuration      time.Duration
-	labelExclusion   *labels.Requirement
-	labelRequirement *labels.Requirement
-	rules            rules.Rules
+	namespace             string
+	gracePeriod           *int64
+	schedule              string
+	runDuration           time.Duration
+	labelExclusion        *labels.Requirement
+	labelRequirement      *labels.Requirement
+	annotationRequirement *labels.Requirement
+	dryRun                bool
+	rules                 rules.Rules
 }
 
 func namespace() string {
@@ -109,6 +115,32 @@ func labelRequirement() (*labels.Requirement, error) {
 	return labelRequirement, nil
 }
 
+func annotationRequirement() (*labels.Requirement, error) {
+	annotationKey, annotationKeyExists := os.LookupEnv(envRequireAnnotationKey)
+	annotationValue, annotationValuesExist := os.LookupEnv(envRequireAnnotationValues)
+	if annotationKeyExists && !annotationValuesExist {
+		return nil, fmt.Errorf("specified %s but not %s", envRequireAnnotationKey, envRequireAnnotationValues)
+	} else if !annotationKeyExists && annotationValuesExist {
+		return nil, fmt.Errorf("did not specify %s but did specify %s", envRequireAnnotationKey, envRequireAnnotationValues)
+	} else if !annotationKeyExists && !annotationValuesExist {
+		return nil, nil
+	}
+	annotationValues := strings.Split(annotationValue, ",")
+	annotationRequirement, err := labels.NewRequirement(annotationKey, selection.In, annotationValues)
+	if err != nil {
+		return nil, fmt.Errorf("could not create annotation requirement: %s", err)
+	}
+	return annotationRequirement, nil
+}
+
+func dryRun() (bool, error) {
+	value, exists := os.LookupEnv(envDryRun)
+	if !exists {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
 	options.gracePeriod, err = gracePeriod()
@@ -125,6 +157,14 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.labelRequirement, err = labelRequirement()
+	if err != nil {
+		return options, err
+	}
+	options.annotationRequirement, err = annotationRequirement()
+	if err != nil {
+		return options, err
+	}
+	options.dryRun, err = dryRun()
 	if err != nil {
 		return options, err
 	}
