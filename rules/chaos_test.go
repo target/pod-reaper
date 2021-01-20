@@ -37,7 +37,7 @@ func TestChaosLoad(t *testing.T) {
 		os.Setenv(envExplicitLoad, ruleChaos)
 		loaded, message, err := (&chaos{}).load()
 		assert.NoError(t, err)
-		assert.Equal(t, "chaos loaded explicitly", message)
+		assert.Equal(t, "chaos (no default)", message)
 		assert.True(t, loaded)
 	})
 }

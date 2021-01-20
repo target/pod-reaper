@@ -36,7 +36,7 @@ func (rule *unready) load() (bool, string, error) {
 	if rule.duration != 0 {
 		return true, fmt.Sprintf("maximum unready %s", value), nil
 	}
-	return true, fmt.Sprint("maximum unready duration loaded explicitly"), nil
+	return true, fmt.Sprint("maximum unready duration (no default)"), nil
 }
 
 func (rule *unready) ShouldReap(pod v1.Pod) (bool, string) {

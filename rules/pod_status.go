@@ -33,7 +33,7 @@ func (rule *podStatus) load() (bool, string, error) {
 	if len(rule.reapStatuses) != 0 {
 		return true, fmt.Sprintf("pod status in [%s]", value), nil
 	}
-	return true, "pod status loaded explicitly", nil
+	return true, "pod status (no default)", nil
 }
 
 func (rule *podStatus) ShouldReap(pod v1.Pod) (bool, string) {

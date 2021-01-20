@@ -70,7 +70,7 @@ func TestContainerStatusLoad(t *testing.T) {
 		os.Setenv(envExplicitLoad, containerStatusName)
 		loaded, message, err := (&containerStatus{}).load()
 		assert.NoError(t, err)
-		assert.Equal(t, "container status loaded explicitly", message)
+		assert.Equal(t, "container status (no default)", message)
 		assert.True(t, loaded)
 	})
 }

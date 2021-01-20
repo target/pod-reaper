@@ -48,7 +48,7 @@ func TestDurationLoad(t *testing.T) {
 		os.Setenv(envExplicitLoad, ruleDuration)
 		loaded, message, err := (&duration{}).load()
 		assert.NoError(t, err)
-		assert.Equal(t, "maximum run duration loaded explicitly", message)
+		assert.Equal(t, "maximum run duration (no default)", message)
 		assert.True(t, loaded)
 	})
 }

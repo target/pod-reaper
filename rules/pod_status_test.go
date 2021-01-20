@@ -49,7 +49,7 @@ func TestPodStatusLoad(t *testing.T) {
 		os.Setenv(envExplicitLoad, podStatusName)
 		loaded, message, err := (&podStatus{}).load()
 		assert.NoError(t, err)
-		assert.Equal(t, "pod status loaded explicitly", message)
+		assert.Equal(t, "pod status (no default)", message)
 		assert.True(t, loaded)
 	})
 }

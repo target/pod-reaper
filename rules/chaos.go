@@ -42,7 +42,7 @@ func (rule *chaos) load() (bool, string, error) {
 	if rule.chance != 0 {
 		return true, fmt.Sprintf("chaos chance %s", value), nil
 	}
-	return true, fmt.Sprint("chaos loaded explicitly"), nil
+	return true, fmt.Sprint("chaos (no default)"), nil
 }
 
 func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {

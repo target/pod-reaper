@@ -55,7 +55,7 @@ func TestUnreadyLoad(t *testing.T) {
 		os.Setenv(envExplicitLoad, ruleUnready)
 		loaded, message, err := (&unready{}).load()
 		assert.NoError(t, err)
-		assert.Equal(t, "maximum unready duration loaded explicitly", message)
+		assert.Equal(t, "maximum unready duration (no default)", message)
 		assert.True(t, loaded)
 	})
 }

@@ -36,7 +36,7 @@ func (rule *duration) load() (bool, string, error) {
 	if rule.duration != 0 {
 		return true, fmt.Sprintf("maximum run duration %s", value), nil
 	}
-	return true, fmt.Sprint("maximum run duration loaded explicitly"), nil
+	return true, fmt.Sprint("maximum run duration (no default)"), nil
 }
 
 func (rule *duration) ShouldReap(pod v1.Pod) (bool, string) {
