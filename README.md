@@ -60,20 +60,9 @@ Pods
 apiVersion: v1
 kind: Pod
 metadata:
-  name: a
+  name: test
   annotations:
-    pod-reaper/max-duration: 1d
-spec:
-  containers:
-  - name: nginx
-    image: nginx:1.14.2
-    ports:
-    - containerPort: 80
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: b
+    pod-reaper/max-duration: 1h
 spec:
   containers:
   - name: nginx
@@ -82,7 +71,7 @@ spec:
     - containerPort: 80
 ```
 
-In this configuration, the Duration, and Unready rules will be loaded. Either pod will be reaped if it is unready for more than 5 minutes. Pod _a_ will be reaped after 1 day, regardless of status.
+In this configuration, the Duration, and Unready rules will be loaded. The pod will be reaped if it is older than 1 hour and unready for 5 minutes.
 
 ### `NAMESPACE`
 
