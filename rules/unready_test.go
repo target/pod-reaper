@@ -50,6 +50,14 @@ func TestUnreadyLoad(t *testing.T) {
 		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
+	t.Run("explicit load without default", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envExplicitLoad, ruleUnready)
+		loaded, message, err := (&unready{}).load()
+		assert.NoError(t, err)
+		assert.Equal(t, "maximum unready duration loaded explicitly", message)
+		assert.True(t, loaded)
+	})
 }
 
 func TestUnreadyShouldReap(t *testing.T) {
@@ -81,6 +89,43 @@ func TestUnreadyShouldReap(t *testing.T) {
 		lastTransitionTime := time.Now().Add(-10 * time.Minute)
 		pod := testUnreadyPod(&lastTransitionTime)
 		shouldReap, _ := unready.ShouldReap(pod)
+		assert.False(t, shouldReap)
+	})
+	t.Run("annotation override reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "1h")
+		unready := unready{}
+		unready.load()
+		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+		pod := testUnreadyPod(&lastTransitionTime)
+		pod.Annotations = map[string]string{
+			annotationMaxUnready: "9m59s",
+		}
+		shouldReap, reason := unready.ShouldReap(pod)
+		assert.True(t, shouldReap)
+		assert.Regexp(t, ".*has been unready.*", reason)
+	})
+	t.Run("annotation override no reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "9m59s")
+		unready := unready{}
+		unready.load()
+		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+		pod := testUnreadyPod(&lastTransitionTime)
+		pod.Annotations = map[string]string{
+			annotationMaxUnready: "20m",
+		}
+		shouldReap, _ := unready.ShouldReap(pod)
+		assert.False(t, shouldReap)
+	})
+	t.Run("explicit load no annotation", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envExplicitLoad, ruleUnready)
+		duration := duration{}
+		duration.load()
+		startTime := time.Now().Add(-2 * time.Minute)
+		pod := testUnreadyPod(&startTime)
+		shouldReap, _ := duration.ShouldReap(pod)
 		assert.False(t, shouldReap)
 	})
 }

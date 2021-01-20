@@ -7,10 +7,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 )
 
-const envChaosChance = "CHAOS_CHANCE"
+const (
+	ruleChaos             = "chaos"
+	envChaosChance        = "CHAOS_CHANCE"
+	annotationChaosChance = annotationPrefix + "/chaos-chance"
+)
 
 var _ Rule = (*chaos)(nil)
 
@@ -23,18 +28,34 @@ func init() {
 }
 
 func (rule *chaos) load() (bool, string, error) {
-	value, active := os.LookupEnv(envChaosChance)
-	if !active {
+	explicit := explicitLoad(ruleChaos)
+	value, hasDefault := os.LookupEnv(envChaosChance)
+	if !explicit && !hasDefault {
 		return false, "", nil
 	}
 	chance, err := strconv.ParseFloat(value, 64)
-	if err != nil {
+	if !explicit && err != nil {
 		return false, "", fmt.Errorf("invalid chaos chance %s", err)
 	}
 	rule.chance = chance
-	return true, fmt.Sprintf("chaos chance %s", value), nil
+
+	if rule.chance != 0 {
+		return true, fmt.Sprintf("chaos chance %s", value), nil
+	}
+	return true, fmt.Sprint("chaos loaded explicitly"), nil
 }
 
 func (rule *chaos) ShouldReap(pod v1.Pod) (bool, string) {
-	return rand.Float64() < rule.chance, "was flagged for chaos"
+	chance := rule.chance
+	annotationValue := pod.Annotations[annotationChaosChance]
+	if annotationValue != "" {
+		annotationChance, err := strconv.ParseFloat(annotationValue, 64)
+		if err == nil {
+			chance = annotationChance
+		} else {
+			logrus.Warnf("pod %s has invalid chaos chance: %s", pod.Name, err)
+		}
+	}
+
+	return rand.Float64() < chance, "was flagged for chaos"
 }

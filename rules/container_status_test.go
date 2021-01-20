@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func testWaitContainerState(reason string) v1.ContainerState {
@@ -65,6 +65,14 @@ func TestContainerStatusLoad(t *testing.T) {
 		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
+	t.Run("explicit load without default", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envExplicitLoad, containerStatusName)
+		loaded, message, err := (&containerStatus{}).load()
+		assert.NoError(t, err)
+		assert.Equal(t, "container status loaded explicitly", message)
+		assert.True(t, loaded)
+	})
 }
 
 func TestContainerStatusShouldReap(t *testing.T) {
@@ -81,6 +89,28 @@ func TestContainerStatusShouldReap(t *testing.T) {
 	t.Run("no reap", func(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envContainerStatus, "test-status,another-status")
+		containerStatus := containerStatus{}
+		containerStatus.load()
+		pod := testStatusPod(testWaitContainerState("not-present"))
+		shouldReap, _ := containerStatus.ShouldReap(pod)
+		assert.False(t, shouldReap)
+	})
+	t.Run("annotation reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envContainerStatus, "test-status")
+		containerStatus := containerStatus{}
+		containerStatus.load()
+		pod := testStatusPod(testWaitContainerState("another-status"))
+		pod.Annotations = map[string]string{
+			annotationContainerStatus: "another-status",
+		}
+		shouldReap, reason := containerStatus.ShouldReap(pod)
+		assert.True(t, shouldReap)
+		assert.Regexp(t, ".*another-status.*", reason)
+	})
+	t.Run("explicit load no annotation", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envExplicitLoad, containerStatusName)
 		containerStatus := containerStatus{}
 		containerStatus.load()
 		pod := testStatusPod(testWaitContainerState("not-present"))
