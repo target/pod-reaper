@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"io/ioutil"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"time"
@@ -9,25 +9,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
-type reaper struct {
-	clientSet *kubernetes.Clientset
+type Reaper struct {
+	clientSet kubernetes.Interface
 	options   options
 }
 
-func newReaper() reaper {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		logrus.WithError(err).Panic("error getting in cluster kubernetes config")
-		panic(err)
-	}
-	clientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		logrus.WithError(err).Panic("unable to get client set for in cluster kubernetes config")
-		panic(err)
-	}
+func NewReaper(clientSet kubernetes.Interface) Reaper {
 	if clientSet == nil {
 		message := "kubernetes client set cannot be nil"
 		logrus.Panic(message)
@@ -38,13 +27,14 @@ func newReaper() reaper {
 		logrus.WithError(err).Panic("error loading options")
 		panic(err)
 	}
-	return reaper{
+
+	return Reaper{
 		clientSet: clientSet,
 		options:   options,
 	}
 }
 
-func (reaper reaper) getPods() *v1.PodList {
+func (reaper Reaper) getPods() *v1.PodList {
 	coreClient := reaper.clientSet.CoreV1()
 	pods := coreClient.Pods(reaper.options.namespace)
 	listOptions := metav1.ListOptions{}
@@ -78,7 +68,7 @@ func (reaper reaper) getPods() *v1.PodList {
 	return podList
 }
 
-func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
+func (reaper Reaper) reapPod(pod v1.Pod, reasons []string) {
 	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
@@ -102,7 +92,7 @@ func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
 	}
 }
 
-func (reaper reaper) scytheCycle() {
+func (reaper Reaper) scytheCycle() {
 	logrus.Debug("starting reap cycle")
 	pods := reaper.getPods()
 	for _, pod := range pods.Items {
@@ -121,7 +111,7 @@ func cronWithOptionalSeconds() *cron.Cron {
 				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)))
 }
 
-func (reaper reaper) harvest() {
+func (reaper Reaper) Harvest() {
 	runForever := reaper.options.runDuration == 0
 	schedule := cronWithOptionalSeconds()
 	_, err := schedule.AddFunc(reaper.options.schedule, func() {

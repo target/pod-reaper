@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 
-	"github.com/target/pod-reaper/rules"
+	"github.com/target/pod-reaper/internal/pkg/rules"
 )
 
 // environment variable names

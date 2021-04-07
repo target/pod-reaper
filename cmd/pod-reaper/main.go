@@ -5,6 +5,8 @@ import (
 
 	joonix "github.com/joonix/log"
 	"github.com/sirupsen/logrus"
+	"github.com/target/pod-reaper/cmd/pod-reaper/app"
+	"github.com/target/pod-reaper/internal/pkg/client"
 )
 
 const envLogLevel = "LOG_LEVEL"
@@ -14,13 +16,18 @@ const logrusFormat = "Logrus"
 const defaultLogLevel = logrus.InfoLevel
 
 func main() {
-	logLevel := getLogLevel()
-	logrus.SetLevel(logLevel)
 	logFormat := getLogFormat()
 	logrus.SetFormatter(logFormat)
+	logLevel := getLogLevel()
+	logrus.SetLevel(logLevel)
 
-	reaper := newReaper()
-	reaper.harvest()
+	clientset, err := client.CreateClient("")
+	if err != nil {
+		logrus.WithError(err).Panic("cannot create client")
+		panic(err)
+	}
+	reaper := app.NewReaper(clientset)
+	reaper.Harvest()
 	logrus.Info("pod reaper is exiting")
 }
 
