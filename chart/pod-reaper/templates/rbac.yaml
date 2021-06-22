@@ -16,6 +16,9 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "delete"]
+- apiGroups: [""]
+  resources: ["pods/eviction"]
+  verbs: ["create"]
 
 ---
 # binding the above cluster role (permissions) to the above service account
