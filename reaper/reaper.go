@@ -6,6 +6,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
+	policyv1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
@@ -92,7 +93,15 @@ func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
 			"pod":     pod.Name,
 			"reasons": reasons,
 		}).Info("reaping pod")
-		err := reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+		var err error
+		if reaper.options.evict {
+			err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Evict(&policyv1.Eviction{
+				ObjectMeta:    metav1.ObjectMeta{Namespace: pod.Namespace, Name: pod.Name},
+				DeleteOptions: deleteOptions,
+			})
+		} else {
+			err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+		}
 		if err != nil {
 			// log the error, but continue on
 			logrus.WithFields(logrus.Fields{

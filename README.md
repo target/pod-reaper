@@ -14,6 +14,7 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `GRACE_PERIOD` duration that pods should be given to shut down before hard killing the pod
 - `SCHEDULE` schedule for when pod-reaper should look for pods to reap
 - `RUN_DURATION` how long pod-reaper should run before exiting
+- `EVICT` try to evict pods instead of deleting them
 - `EXCLUDE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should exclude
 - `EXCLUDE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should exclude
 - `REQUIRE_LABEL_KEY` pod metadata label (of key-value pair) that pod-reaper should require
@@ -79,6 +80,10 @@ Sustained running:
 
 - do not use `RUN_DURATION`
 - manage the pod reaper via a deployment
+
+### `EVICT`
+
+Use the [Eviction API](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/#eviction-api) instead of pod deletion when reaping pods.  The Eviction API will honor the [disruption budget](https://kubernetes.io/docs/tasks/run-application/configure-pdb/) assigned to pods, and can for example be useful when reaping pods by duration to ensure that you don't reap all the pods of a specific deployment simultaneously, interrupting a published service.  When a pod cannot be reaped due to a disruption budget, the reason will be logged as a warning.
 
 ### `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES`
 

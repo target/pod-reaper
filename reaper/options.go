@@ -25,6 +25,7 @@ const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
 const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
 const envDryRun = "DRY_RUN"
+const envEvict = "EVICT"
 
 type options struct {
 	namespace             string
@@ -36,6 +37,7 @@ type options struct {
 	annotationRequirement *labels.Requirement
 	dryRun                bool
 	rules                 rules.Rules
+	evict                 bool
 }
 
 func namespace() string {
@@ -141,6 +143,14 @@ func dryRun() (bool, error) {
 	return strconv.ParseBool(value)
 }
 
+func evict() (bool, error) {
+	value, exists := os.LookupEnv(envEvict)
+	if !exists {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
 	options.gracePeriod, err = gracePeriod()
@@ -165,6 +175,11 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.dryRun, err = dryRun()
+	if err != nil {
+		return options, err
+	}
+
+	options.evict, err = evict()
 	if err != nil {
 		return options, err
 	}
