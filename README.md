@@ -21,6 +21,7 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
 - `REQUIRE_ANNOTATION_KEY` pod metadata annotation (of key-value pair) that pod-reaper should require
 - `REQUIRE_ANNOTATION_VALUES` comma-separated list of metadata annotation values (of key-value pair) that pod-reaper should require
+- `RULES` comma-separated list of rules to load regardless of default
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
@@ -37,6 +38,41 @@ EXCLUDE_LABEL_VALUES=disabled,false
 # enable at least one rule
 CHAOS_CHANCE=.001
 ```
+
+#### Annotations
+
+Rule configuration may be overridden by annotations on individual pods. For single-value rules, the configured rule value will be replaced by the annotation value. For multi-value rules, annotations will be added to the configured rule values. See [Implemented Rules](#implemented-rules) for available annotations.
+
+Example environment variables with annotations:
+
+```sh
+# pod-reaper configuration
+NAMESPACE=test
+SCHEDULE=@every 30s
+
+# enable at least one rule
+MAX_UNREADY=5m
+RULES=duration,unready
+```
+
+Pods
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test
+  annotations:
+    pod-reaper/max-duration: 1h
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+```
+
+In this configuration, the Duration, and Unready rules will be loaded. The pod will be reaped if it is older than 1 hour and unready for 5 minutes.
 
 ### `NAMESPACE`
 
@@ -139,9 +175,17 @@ Default value: Logrus
 
 This environment variable modifies the structured log format for easy ingestion into different logging systems, including Stackdriver via the Fluentd format. Available formats: Logrus, Fluentd
 
+### `RULES`
+
+This is an optional, comma-separated list of rules which should be loaded. If a rule is specified here, it will be loaded even if it does not have a configuration defined in an environment variable. This is used to load rules which only operate on annotations.
+
+Available rules: chaos, container_status, duration, pod_status, unready
+
 ## Implemented Rules
 
 ### Chaos Chance
+
+Annotation: `pod-reaper/chaos-chance`
 
 Flags a pod for reaping based on a random number generator.
 
@@ -159,6 +203,8 @@ Remember that pods can be excluded from reaping if the pod has a label matching 
 
 ### Container Status
 
+Annotation: `pod-reaper/container-statuses`
+
 Flags a pod for reaping based on a container within a pod having a specific container status.
 
 Enabled and configured by setting the environment variable `CONTAINER_STATUSES` with a coma separated list (no whitespace) of statuses. If a pod is in either a waiting or terminated state with a status in the specified list of status, the pod will be flagged for reaping.
@@ -173,6 +219,8 @@ CONTAINER_STATUSES=ImagePullBackOff,ErrImagePull,Error
 Note that this will not catch statuses that are describing the entire pod like the `Evicted` status.
 
 ### Pod Status
+
+Annotation: `pod-reaper/pod-statuses`
 
 Flags a pod for reaping based on the pod status. 
 
@@ -189,11 +237,15 @@ Note that pod status is different than container statuses as it checks the statu
 
 ### Duration
 
+Annotation: `pod-reaper/max-duration`
+
 Flags a pod for reaping based on the pods current run duration.
 
 Enabled and configured by setting the environment variable `MAX_DURATION` with a valid go-lang `time.duration` format (example: "1h15m30s"). If a pod has been running longer than the specified duration, the pod will be flagged for reaping.
 
 ### Unready
+
+Annotation: `pod-reaper/max-unready`
 
 Flags a pod for reaping based on the time the pod has been unready.
 

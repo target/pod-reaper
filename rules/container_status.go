@@ -5,10 +5,14 @@ import (
 	"os"
 	"strings"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
-const envContainerStatus = "CONTAINER_STATUSES"
+const (
+	containerStatusName       = "container_status"
+	envContainerStatus        = "CONTAINER_STATUSES"
+	annotationContainerStatus = annotationPrefix + "/container-statuses"
+)
 
 var _ Rule = (*containerStatus)(nil)
 
@@ -17,16 +21,30 @@ type containerStatus struct {
 }
 
 func (rule *containerStatus) load() (bool, string, error) {
-	value, active := os.LookupEnv(envContainerStatus)
-	if !active {
+	explicit := explicitLoad(containerStatusName)
+	value, hasDefault := os.LookupEnv(envContainerStatus)
+	if !explicit && !hasDefault {
 		return false, "", nil
 	}
-	rule.reapStatuses = strings.Split(value, ",")
-	return true, fmt.Sprintf("container status in [%s]", value), nil
+	if value != "" {
+		rule.reapStatuses = strings.Split(value, ",")
+	}
+
+	if len(rule.reapStatuses) != 0 {
+		return true, fmt.Sprintf("container status in [%s]", value), nil
+	}
+	return true, "container status (no default)", nil
 }
 
 func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
-	for _, reapStatus := range rule.reapStatuses {
+	reapStatuses := rule.reapStatuses
+	annotationValue := pod.Annotations[annotationContainerStatus]
+	if annotationValue != "" {
+		annotationValues := strings.Split(annotationValue, ",")
+		reapStatuses = append(reapStatuses, annotationValues...)
+	}
+
+	for _, reapStatus := range reapStatuses {
 		for _, containerStatus := range pod.Status.ContainerStatuses {
 			state := containerStatus.State
 			// check both waiting and terminated conditions

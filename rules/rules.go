@@ -2,10 +2,15 @@ package rules
 
 import (
 	"errors"
+	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
+
+const envExplicitLoad = "RULES"
+const annotationPrefix = "pod-reaper"
 
 // Rule is an interface defining the two functions needed for pod reaper to use the rule.
 type Rule interface {
@@ -64,4 +69,19 @@ func (rules Rules) ShouldReap(pod v1.Pod) (bool, []string) {
 		reasons = append(reasons, reason)
 	}
 	return true, reasons
+}
+
+func explicitLoad(ruleName string) bool {
+	value, exists := os.LookupEnv(envExplicitLoad)
+	if !exists {
+		return false
+	}
+
+	values := strings.Split(value, ",")
+	for _, v := range values {
+		if v == ruleName {
+			return true
+		}
+	}
+	return false
 }
