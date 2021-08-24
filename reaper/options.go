@@ -25,6 +25,7 @@ const envRequireLabelValues = "REQUIRE_LABEL_VALUES"
 const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
 const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
 const envDryRun = "DRY_RUN"
+const envMaxPods = "MAX_PODS"
 const envEvict = "EVICT"
 
 type options struct {
@@ -36,6 +37,7 @@ type options struct {
 	labelRequirement      *labels.Requirement
 	annotationRequirement *labels.Requirement
 	dryRun                bool
+	maxPods               int
 	rules                 rules.Rules
 	evict                 bool
 }
@@ -143,6 +145,24 @@ func dryRun() (bool, error) {
 	return strconv.ParseBool(value)
 }
 
+func maxPods() (int, error) {
+	value, exists := os.LookupEnv(envMaxPods)
+	if !exists {
+		return 0, nil
+	}
+
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+
+	if v < 0 {
+		return 0, nil
+	}
+
+	return v, nil
+}
+
 func evict() (bool, error) {
 	value, exists := os.LookupEnv(envEvict)
 	if !exists {
@@ -175,6 +195,10 @@ func loadOptions() (options options, err error) {
 		return options, err
 	}
 	options.dryRun, err = dryRun()
+	if err != nil {
+		return options, err
+	}
+	options.maxPods, err = maxPods()
 	if err != nil {
 		return options, err
 	}
