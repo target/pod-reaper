@@ -79,45 +79,59 @@ func (reaper reaper) getPods() *v1.PodList {
 	return podList
 }
 
-func (reaper reaper) reapPod(pod v1.Pod, reasons []string) {
+func (reaper reaper) reapPod(pod v1.Pod, reasons []string, reapedPods int) {
 	deleteOptions := &metav1.DeleteOptions{
 		GracePeriodSeconds: reaper.options.gracePeriod,
 	}
+
+	podLog := logrus.WithFields(logrus.Fields{
+		"pod":     pod.Name,
+		"reasons": reasons,
+	})
+
 	if reaper.options.dryRun {
-		logrus.WithFields(logrus.Fields{
-			"pod":     pod.Name,
-			"reasons": reasons,
-		}).Info("pod would be reaped but pod-reaper is in dry-run mode")
-	} else {
-		logrus.WithFields(logrus.Fields{
-			"pod":     pod.Name,
-			"reasons": reasons,
-		}).Info("reaping pod")
-		var err error
-		if reaper.options.evict {
-			err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Evict(&policyv1.Eviction{
-				ObjectMeta:    metav1.ObjectMeta{Namespace: pod.Namespace, Name: pod.Name},
-				DeleteOptions: deleteOptions,
-			})
-		} else {
-			err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
-		}
-		if err != nil {
-			// log the error, but continue on
-			logrus.WithFields(logrus.Fields{
-				"pod": pod.Name,
-			}).WithError(err).Warn("unable to delete pod", err)
-		}
+		podLog.Info("pod would be reaped but pod-reaper is in dry-run mode")
+
+		return
 	}
+
+	if reaper.options.maxPods > 0 && reapedPods >= reaper.options.maxPods {
+		podLog.WithFields(logrus.Fields{
+			"reapedPods": reapedPods,
+			"maxPods":    reaper.options.maxPods,
+		}).Info("pod would be reaped but maxPods is exceeded")
+
+		return
+	}
+
+	podLog.Info("reaping pod")
+	var err error
+	if reaper.options.evict {
+		err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Evict(&policyv1.Eviction{
+			ObjectMeta:    metav1.ObjectMeta{Namespace: pod.Namespace, Name: pod.Name},
+			DeleteOptions: deleteOptions,
+		})
+	} else {
+		err = reaper.clientSet.CoreV1().Pods(pod.Namespace).Delete(pod.Name, deleteOptions)
+	}
+	if err != nil {
+		// log the error, but continue on
+		logrus.WithFields(logrus.Fields{
+			"pod": pod.Name,
+		}).WithError(err).Warn("unable to delete pod", err)
+	}
+
 }
 
 func (reaper reaper) scytheCycle() {
 	logrus.Debug("starting reap cycle")
 	pods := reaper.getPods()
+	reapedPods := 0
 	for _, pod := range pods.Items {
 		shouldReap, reasons := reaper.options.rules.ShouldReap(pod)
 		if shouldReap {
-			reaper.reapPod(pod, reasons)
+			reaper.reapPod(pod, reasons, reapedPods)
+			reapedPods++
 		}
 	}
 }

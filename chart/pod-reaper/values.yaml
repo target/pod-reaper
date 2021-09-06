@@ -20,6 +20,7 @@ image:
 #    require_annotation_key: ""
 #    require_annotation_values: ""
 #    dry_run: "false"
+#    max_pods: "0"
 #    log_level: "Info"
 #    log_format: "Logrus"
 #    chaos_chance: ""

@@ -222,6 +222,34 @@ func TestOptions(t *testing.T) {
 			assert.False(t, dryRun)
 		})
 	})
+	t.Run("max-pods", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMaxPods, "not a number")
+			_, err := maxPods()
+			assert.Error(t, err)
+		})
+		t.Run("negative", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMaxPods, "-123")
+			maxPods, err := maxPods()
+			assert.NoError(t, err)
+			assert.Equal(t, 0, maxPods)
+		})
+		t.Run("positive", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envMaxPods, "123")
+			maxPods, err := maxPods()
+			assert.NoError(t, err)
+			assert.Equal(t, 123, maxPods)
+		})
+		t.Run("not set", func(t *testing.T) {
+			os.Clearenv()
+			maxPods, err := maxPods()
+			assert.NoError(t, err)
+			assert.Equal(t, 0, maxPods)
+		})
+	})
 }
 
 func TestOptionsLoad(t *testing.T) {

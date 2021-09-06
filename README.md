@@ -105,6 +105,12 @@ Deafult value: unset (which will behave as if it were set to "false")
 
 Acceptable values are 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False. Any other values will error. If the provided value is one of the "true" values then pod reaper will do select pods for reaper but will not actually kill any pods. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because the reaper is in dry-run mode.
 
+### `MAX_PODS`
+
+Default value: unset (which will behave as if it were set to "0")
+
+Acceptable values are positive integers. Negative integers will evaluate to 0 and any other values will error. This can be useful to prevent too many pods being killed in one run. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because too many pods were reaped already.
+
 ## Logging
 
 Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus). 
