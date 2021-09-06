@@ -21,6 +21,10 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `REQUIRE_LABEL_VALUES` comma-separated list of metadata label values (of key-value pair) that pod-reaper should require
 - `REQUIRE_ANNOTATION_KEY` pod metadata annotation (of key-value pair) that pod-reaper should require
 - `REQUIRE_ANNOTATION_VALUES` comma-separated list of metadata annotation values (of key-value pair) that pod-reaper should require
+- `DRY_RUN` log pod-reaper's actions but don't actually kill any pods
+- `MAX_PODS` kill a maximum number of pods on each run
+- `LOG_LEVEL` control verbosity level of log messages
+- `LOG_FORMAT` choose between several formats of logging
 
 Additionally, at least one rule must be enabled, or the pod-reaper will error and exit. See the Rules section below for configuring and enabling rules.
 
@@ -101,7 +105,7 @@ These environment variables build a annotation selector that pods must match in 
 
 ### `DRY_RUN`
 
-Deafult value: unset (which will behave as if it were set to "false")
+Default value: unset (which will behave as if it were set to "false")
 
 Acceptable values are 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False. Any other values will error. If the provided value is one of the "true" values then pod reaper will do select pods for reaper but will not actually kill any pods. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because the reaper is in dry-run mode.
 
