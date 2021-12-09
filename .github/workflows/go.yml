@@ -17,7 +17,9 @@ jobs:
         go-version: 1.17
 
     - name: Build
-      run: go build -v ./...
+      run: |
+        ls -la
+        go build -v ./...
 
     - name: Test
       run: go test -v ./...
