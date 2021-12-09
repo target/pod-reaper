@@ -2,6 +2,7 @@ name: Docker Publish
 
 on:
   release:
+    types: [created]
 
 jobs:
   docker:
@@ -26,4 +27,4 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/pod-reaper:lastest
-            ${{ secrets.DOCKERHUB_USERNAME }}/pod-reaper:${GITHUB_REF##*/}
+            ${{ secrets.DOCKERHUB_USERNAME }}/pod-reaper:alpha
