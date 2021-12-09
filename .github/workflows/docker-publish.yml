@@ -6,6 +6,7 @@ on:
 
 jobs:
   docker:
+    environment: deployment
     runs-on: ubuntu-latest
     steps:
       -
