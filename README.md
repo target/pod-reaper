@@ -151,7 +151,7 @@ This environment variable modifies the structured log format for easy ingestion 
 
 ## Implemented Rules
 
-### Chaos Chance
+### `CHAOS_CHANCE`
 
 Flags a pod for reaping based on a random number generator.
 
@@ -167,7 +167,7 @@ CHAOS_CHANCE=.01
 
 Remember that pods can be excluded from reaping if the pod has a label matching the pod-reaper's configuration. See the `EXCLUDE_LABEL_KEY` and `EXCLUDE_LABEL_VALUES` section above for more details.
 
-### Container Status
+### `CONTAINER_STATUSES`
 
 Flags a pod for reaping based on a container within a pod having a specific container status.
 
@@ -182,7 +182,7 @@ CONTAINER_STATUSES=ImagePullBackOff,ErrImagePull,Error
 ```
 Note that this will not catch statuses that are describing the entire pod like the `Evicted` status.
 
-### Pod Status
+### `POD_STATUS`
 
 Flags a pod for reaping based on the pod status. 
 
@@ -197,13 +197,13 @@ POD_STATUSES=Evicted,Unknown
 ```
 Note that pod status is different than container statuses as it checks the status of the overall pod rather than teh status of containers in the pod. The most obvious use case of this if dealing with `Evicted` pods.
 
-### Duration
+### `MAX_DURATION`
 
 Flags a pod for reaping based on the pods current run duration.
 
 Enabled and configured by setting the environment variable `MAX_DURATION` with a valid go-lang `time.duration` format (example: "1h15m30s"). If a pod has been running longer than the specified duration, the pod will be flagged for reaping.
 
-### Unready
+### `UNREADY`
 
 Flags a pod for reaping based on the time the pod has been unready.
 
