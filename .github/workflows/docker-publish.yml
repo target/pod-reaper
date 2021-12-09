@@ -25,5 +25,5 @@ jobs:
         with:
           push: true
           tags: |
-            brianberzins/pod-reaper:lastest
-            brianberzins/pod-reaper:${GITHUB_REF#refs/*/}
+            ${{ secrets.DOCKERHUB_USERNAME }}/pod-reaper:lastest
+            ${{ secrets.DOCKERHUB_USERNAME }}/pod-reaper:${GITHUB_REF##*/}
