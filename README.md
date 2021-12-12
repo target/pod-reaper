@@ -2,7 +2,7 @@
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 [![release](https://img.shields.io/github/release/target/pod-reaper.svg)](https://github.com/target/pod-reaper/releases/latest)
-[![tests](https://github.com/brianberzins/pod-reaper/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/brianberzins/pod-reaper/actions/workflows/test.yml/)
+[![tests](https://github.com/target/pod-reaper/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/target/pod-reaper/actions/workflows/test.yml/)
 
 A rules based pod killing container. Pod-Reaper was designed to kill pods that meet specific conditions. See the "Implemented Rules" section below for details on specific rules.
 
