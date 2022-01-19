@@ -213,5 +213,5 @@ func loadOptions() (options options, err error) {
 	if err != nil {
 		return options, err
 	}
-	return options, err
+	return options, nil
 }
