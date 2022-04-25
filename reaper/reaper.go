@@ -65,18 +65,22 @@ func (reaper reaper) getPods() *v1.PodList {
 		panic(err)
 	}
 	if reaper.options.annotationRequirement != nil {
-		filteredList := []v1.Pod{}
-		for _, pod := range podList.Items {
-			// convert the pod's annotations to an equivalent label selector
-			selector := labels.Set(pod.Annotations)
-			// include pod if its annotations match the selector
-			if reaper.options.annotationRequirement.Matches(selector) {
-				filteredList = append(filteredList, pod)
-			}
-		}
-		podList.Items = filteredList
+		filter(podList, reaper)
 	}
 	return podList
+}
+
+func filter(podList *v1.PodList, reaper reaper) {
+	filteredList := []v1.Pod{}
+	for _, pod := range podList.Items {
+		// convert the pod's annotations to an equivalent label selector
+		selector := labels.Set(pod.Annotations)
+		// include pod if its annotations match the selector
+		if reaper.options.annotationRequirement.Matches(selector) {
+			filteredList = append(filteredList, pod)
+		}
+	}
+	podList.Items = filteredList
 }
 
 func (reaper reaper) reapPod(pod v1.Pod, reasons []string, reapedPods int) {
