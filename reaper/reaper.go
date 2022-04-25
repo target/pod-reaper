@@ -70,7 +70,7 @@ func (reaper reaper) getPods() *v1.PodList {
 	return podList
 }
 
-func filter(podList *v1.PodList, reaper reaper) {
+func filter(podList *v1.PodList, reaper reaper) *v1.PodList {
 	filteredList := []v1.Pod{}
 	for _, pod := range podList.Items {
 		selector := labels.Set(pod.Annotations)
@@ -79,6 +79,7 @@ func filter(podList *v1.PodList, reaper reaper) {
 		}
 	}
 	podList.Items = filteredList
+	return podList
 }
 
 func (reaper reaper) reapPod(pod v1.Pod, reasons []string, reapedPods int) {
