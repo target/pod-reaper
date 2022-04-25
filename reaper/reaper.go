@@ -65,21 +65,20 @@ func (reaper reaper) getPods() *v1.PodList {
 		panic(err)
 	}
 	if reaper.options.annotationRequirement != nil {
-		filter(podList, reaper)
+		podList.Items = filter(podList.Items, reaper)
 	}
 	return podList
 }
 
-func filter(podList *v1.PodList, reaper reaper) *v1.PodList {
-	var filteredList []v1.Pod
-	for _, pod := range podList.Items {
+func filter(pods []v1.Pod, reaper reaper) []v1.Pod {
+	var filtered []v1.Pod
+	for _, pod := range pods {
 		selector := labels.Set(pod.Annotations)
 		if reaper.options.annotationRequirement.Matches(selector) {
-			filteredList = append(filteredList, pod)
+			filtered = append(filtered, pod)
 		}
 	}
-	podList.Items = filteredList
-	return podList
+	return filtered
 }
 
 func (reaper reaper) reapPod(pod v1.Pod, reasons []string, reapedPods int) {
