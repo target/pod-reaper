@@ -71,7 +71,7 @@ func (reaper reaper) getPods() *v1.PodList {
 }
 
 func filter(podList *v1.PodList, reaper reaper) *v1.PodList {
-	filteredList := []v1.Pod{}
+	var filteredList []v1.Pod
 	for _, pod := range podList.Items {
 		selector := labels.Set(pod.Annotations)
 		if reaper.options.annotationRequirement.Matches(selector) {
