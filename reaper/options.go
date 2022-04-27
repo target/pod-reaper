@@ -6,6 +6,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -177,6 +178,18 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 	case "random":
 		return func(pods []v1.Pod) {
 			rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
+		}, nil
+	case "oldest-first":
+		return func(pods []v1.Pod) {
+			sort.Slice(pods, func(i, j int) bool {
+				if pods[i].Status.StartTime == nil {
+					return false
+				}
+				if pods[j].Status.StartTime == nil {
+					return true
+				}
+				return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
+			})
 		}, nil
 	default:
 		return nil, errors.New("unknown pod sorting strategy")

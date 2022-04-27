@@ -19,15 +19,32 @@ func init() {
 	logrus.SetOutput(ioutil.Discard)
 }
 
+func epocPlus(duration time.Duration) *metav1.Time {
+	t := metav1.NewTime(time.Unix(0, 0).Add(duration))
+	return &t
+}
 func testPodList() []v1.Pod {
 	return []v1.Pod{
 		{
+			Status: v1.PodStatus{
+				StartTime: epocPlus(2 * time.Minute),
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "bearded-dragon",
 				Annotations: map[string]string{"example/key": "lizard"},
 			},
 		},
 		{
+			Status: v1.PodStatus{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        "nil-start-time",
+				Annotations: map[string]string{"example/key": "lizard"},
+			},
+		},
+		{
+			Status: v1.PodStatus{
+				StartTime: epocPlus(1 * time.Minute),
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "corgi",
 				Annotations: map[string]string{"example/key": "not-lizard"},
@@ -296,6 +313,18 @@ func TestOptions(t *testing.T) {
 			rand.Seed(2) // magic seed to force switch
 			sorter(subject)
 			assert.NotEqual(t, testPodList(), subject)
+		})
+		t.Run("oldest-first", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envPodSortingStrategy, "oldest-first")
+			sorter, err := podSortingStrategy()
+			assert.NotNil(t, sorter)
+			assert.NoError(t, err)
+			subject := testPodList()
+			sorter(subject)
+			assert.Equal(t, "corgi", subject[0].ObjectMeta.Name)
+			assert.Equal(t, "bearded-dragon", subject[1].ObjectMeta.Name)
+			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
 		})
 	})
 }
