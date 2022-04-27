@@ -168,6 +168,17 @@ func maxPods() (int, error) {
 	return v, nil
 }
 
+func getPodDeletionCost(pod v1.Pod) int32 {
+	// https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#pod-deletion-cost
+	costString, present := pod.ObjectMeta.Annotations["controller.kubernetes.io/pod-deletion-cost"]
+	if !present {
+		return 0
+	}
+	// per k8s doc: invalid values should be rejected by the API server
+	cost, _ := strconv.ParseInt(costString, 10, 32)
+	return int32(cost)
+}
+
 func podSortingStrategy() (func([]v1.Pod), error) {
 	sortingStrategy, present := os.LookupEnv(envPodSortingStrategy)
 	if !present {
@@ -201,6 +212,12 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 					return true
 				}
 				return pods[j].Status.StartTime.Unix() < pods[i].Status.StartTime.Unix()
+			})
+		}, nil
+	case "pod-deletion-cost":
+		return func(pods []v1.Pod) {
+			sort.Slice(pods, func(i, j int) bool {
+				return getPodDeletionCost(pods[i]) < getPodDeletionCost(pods[j])
 			})
 		}, nil
 	default:

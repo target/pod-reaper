@@ -31,14 +31,23 @@ func testPodList() []v1.Pod {
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "bearded-dragon",
-				Annotations: map[string]string{"example/key": "lizard"},
+				Annotations: map[string]string{"example/key": "lizard", "controller.kubernetes.io/pod-deletion-cost": "invalid"},
 			},
 		},
 		{
 			Status: v1.PodStatus{},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        "nil-start-time",
-				Annotations: map[string]string{"example/key": "lizard"},
+				Annotations: map[string]string{"example/key": "lizard", "controller.kubernetes.io/pod-deletion-cost": "-100"},
+			},
+		},
+		{
+			Status: v1.PodStatus{
+				StartTime: epocPlus(5 * time.Minute),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        "expensive",
+				Annotations: map[string]string{"example/key": "not-lizard", "controller.kubernetes.io/pod-deletion-cost": "500"},
 			},
 		},
 		{
@@ -325,7 +334,8 @@ func TestOptions(t *testing.T) {
 			sorter(subject)
 			assert.Equal(t, "corgi", subject[0].ObjectMeta.Name)
 			assert.Equal(t, "bearded-dragon", subject[1].ObjectMeta.Name)
-			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
+			assert.Equal(t, "expensive", subject[2].ObjectMeta.Name)
+			assert.Equal(t, "nil-start-time", subject[3].ObjectMeta.Name)
 			assert.ElementsMatch(t, testPodList(), subject)
 		})
 		t.Run("youngest-first", func(t *testing.T) {
@@ -336,9 +346,22 @@ func TestOptions(t *testing.T) {
 			assert.NoError(t, err)
 			subject := testPodList()
 			sorter(subject)
-			assert.Equal(t, "bearded-dragon", subject[0].ObjectMeta.Name)
-			assert.Equal(t, "corgi", subject[1].ObjectMeta.Name)
-			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
+			assert.Equal(t, "expensive", subject[0].ObjectMeta.Name)
+			assert.Equal(t, "bearded-dragon", subject[1].ObjectMeta.Name)
+			assert.Equal(t, "corgi", subject[2].ObjectMeta.Name)
+			assert.Equal(t, "nil-start-time", subject[3].ObjectMeta.Name)
+			assert.ElementsMatch(t, testPodList(), subject)
+		})
+		t.Run("pod-deletion-cost", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envPodSortingStrategy, "pod-deletion-cost")
+			sorter, err := podSortingStrategy()
+			assert.NotNil(t, sorter)
+			assert.NoError(t, err)
+			subject := testPodList()
+			sorter(subject)
+			assert.Equal(t, "nil-start-time", subject[0].ObjectMeta.Name)
+			assert.Equal(t, "expensive", subject[3].ObjectMeta.Name)
 			assert.ElementsMatch(t, testPodList(), subject)
 		})
 	})
