@@ -328,9 +328,9 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
 			assert.ElementsMatch(t, testPodList(), subject)
 		})
-		t.Run("newest-first", func(t *testing.T) {
+		t.Run("youngest-first", func(t *testing.T) {
 			os.Clearenv()
-			os.Setenv(envPodSortingStrategy, "newest-first")
+			os.Setenv(envPodSortingStrategy, "youngest-first")
 			sorter, err := podSortingStrategy()
 			assert.NotNil(t, sorter)
 			assert.NoError(t, err)

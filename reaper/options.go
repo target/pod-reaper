@@ -191,7 +191,7 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 				return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
 			})
 		}, nil
-	case "newest-first":
+	case "youngest-first":
 		return func(pods []v1.Pod) {
 			sort.Slice(pods, func(i, j int) bool {
 				if pods[i].Status.StartTime == nil {
