@@ -1,6 +1,8 @@
 package main
 
 import (
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"testing"
 	"time"
@@ -14,6 +16,23 @@ import (
 
 func init() {
 	logrus.SetOutput(ioutil.Discard)
+}
+
+func testPodList() []v1.Pod {
+	return []v1.Pod{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        "bearded-dragon",
+				Annotations: map[string]string{"example/key": "lizard"},
+			},
+		},
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        "corgi",
+				Annotations: map[string]string{"example/key": "not-lizard"},
+			},
+		},
+	}
 }
 
 func TestOptions(t *testing.T) {
@@ -248,6 +267,17 @@ func TestOptions(t *testing.T) {
 			maxPods, err := maxPods()
 			assert.NoError(t, err)
 			assert.Equal(t, 0, maxPods)
+		})
+	})
+	t.Run("pod-sorting", func(t *testing.T) {
+		t.Run("default", func(t *testing.T) {
+			os.Clearenv()
+			sorter, err := podSortingStrategy()
+			assert.NotNil(t, sorter)
+			assert.NoError(t, err)
+			subject := testPodList()
+			sorter(subject)
+			assert.Equal(t, testPodList(), subject)
 		})
 	})
 }

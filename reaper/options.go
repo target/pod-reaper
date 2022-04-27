@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	v1 "k8s.io/api/core/v1"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
 const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
 const envDryRun = "DRY_RUN"
 const envMaxPods = "MAX_PODS"
+const envPodSortingStrategy = "POD_SORTING_STRATEGY"
 const envEvict = "EVICT"
 
 type options struct {
@@ -161,6 +163,10 @@ func maxPods() (int, error) {
 	}
 
 	return v, nil
+}
+
+func podSortingStrategy() (func([]v1.Pod), error) {
+	return func(pods []v1.Pod) {}, nil
 }
 
 func evict() (bool, error) {
