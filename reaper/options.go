@@ -180,7 +180,7 @@ func getPodDeletionCost(pod v1.Pod) int32 {
 	return int32(cost)
 }
 
-func defaultSort(pods []v1.Pod) {}
+func defaultSort([]v1.Pod) {}
 
 func randomSort(pods []v1.Pod) {
 	rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
