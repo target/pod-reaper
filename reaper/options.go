@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"os"
@@ -166,7 +167,14 @@ func maxPods() (int, error) {
 }
 
 func podSortingStrategy() (func([]v1.Pod), error) {
-	return func(pods []v1.Pod) {}, nil
+	sortingStrategy, present := os.LookupEnv(envPodSortingStrategy)
+	if !present {
+		return func(pods []v1.Pod) {}, nil
+	}
+	switch sortingStrategy {
+	default:
+		return nil, errors.New("unknown pod sorting strategy")
+	}
 }
 
 func evict() (bool, error) {

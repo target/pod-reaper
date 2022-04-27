@@ -279,6 +279,12 @@ func TestOptions(t *testing.T) {
 			sorter(subject)
 			assert.Equal(t, testPodList(), subject)
 		})
+		t.Run("invalid", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envPodSortingStrategy, "not a valid sorting strategy")
+			_, err := podSortingStrategy()
+			assert.Error(t, err)
+		})
 	})
 }
 
