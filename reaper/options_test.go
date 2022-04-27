@@ -3,6 +3,7 @@ package main
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -284,6 +285,17 @@ func TestOptions(t *testing.T) {
 			os.Setenv(envPodSortingStrategy, "not a valid sorting strategy")
 			_, err := podSortingStrategy()
 			assert.Error(t, err)
+		})
+		t.Run("random", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envPodSortingStrategy, "random")
+			sorter, err := podSortingStrategy()
+			assert.NotNil(t, sorter)
+			assert.NoError(t, err)
+			subject := testPodList()
+			rand.Seed(2) // magic seed to force switch
+			sorter(subject)
+			assert.NotEqual(t, testPodList(), subject)
 		})
 	})
 }

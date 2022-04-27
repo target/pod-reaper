@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -171,7 +172,13 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 	if !present {
 		return func(pods []v1.Pod) {}, nil
 	}
+
+	//rand.Shuffle(len(a), func(i, j int) { a[i], a[j] = a[j], a[i] })
 	switch sortingStrategy {
+	case "random":
+		return func(pods []v1.Pod) {
+			rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
+		}, nil
 	default:
 		return nil, errors.New("unknown pod sorting strategy")
 	}
