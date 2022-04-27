@@ -180,51 +180,55 @@ func getPodDeletionCost(pod v1.Pod) int32 {
 	return int32(cost)
 }
 
+func defaultSort(pods []v1.Pod) {}
+
+func randomSort(pods []v1.Pod) {
+	rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
+}
+
+func oldestFirstSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		if pods[i].Status.StartTime == nil {
+			return false
+		}
+		if pods[j].Status.StartTime == nil {
+			return true
+		}
+		return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
+	})
+}
+
+func youngestFirstSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		if pods[i].Status.StartTime == nil {
+			return false
+		}
+		if pods[j].Status.StartTime == nil {
+			return true
+		}
+		return pods[j].Status.StartTime.Unix() < pods[i].Status.StartTime.Unix()
+	})
+}
+
+func podDeletionCostSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		return getPodDeletionCost(pods[i]) < getPodDeletionCost(pods[j])
+	})
+}
+
 func podSortingStrategy() (func([]v1.Pod), error) {
 	sortingStrategy, present := os.LookupEnv(envPodSortingStrategy)
 	if !present {
-		defaultSort := func(pods []v1.Pod) {}
 		return defaultSort, nil
 	}
-
 	switch sortingStrategy {
 	case "random":
-		randomSort := func(pods []v1.Pod) {
-			rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
-		}
 		return randomSort, nil
 	case "oldest-first":
-		oldestFirstSort := func(pods []v1.Pod) {
-			sort.Slice(pods, func(i, j int) bool {
-				if pods[i].Status.StartTime == nil {
-					return false
-				}
-				if pods[j].Status.StartTime == nil {
-					return true
-				}
-				return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
-			})
-		}
 		return oldestFirstSort, nil
 	case "youngest-first":
-		youngestFirstSort := func(pods []v1.Pod) {
-			sort.Slice(pods, func(i, j int) bool {
-				if pods[i].Status.StartTime == nil {
-					return false
-				}
-				if pods[j].Status.StartTime == nil {
-					return true
-				}
-				return pods[j].Status.StartTime.Unix() < pods[i].Status.StartTime.Unix()
-			})
-		}
 		return youngestFirstSort, nil
 	case "pod-deletion-cost":
-		podDeletionCostSort := func(pods []v1.Pod) {
-			sort.Slice(pods, func(i, j int) bool {
-				return getPodDeletionCost(pods[i]) < getPodDeletionCost(pods[j])
-			})
-		}
 		return podDeletionCostSort, nil
 	default:
 		return nil, errors.New("unknown pod sorting strategy")
