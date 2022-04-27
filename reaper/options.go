@@ -43,6 +43,7 @@ type options struct {
 	annotationRequirement *labels.Requirement
 	dryRun                bool
 	maxPods               int
+	podSortingStrategy    func([]v1.Pod)
 	rules                 rules.Rules
 	evict                 bool
 }
@@ -235,44 +236,37 @@ func evict() (bool, error) {
 
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
-	options.gracePeriod, err = gracePeriod()
-	if err != nil {
+	if options.gracePeriod, err = gracePeriod(); err != nil {
 		return options, err
 	}
 	options.schedule = schedule()
-	options.runDuration, err = runDuration()
-	if err != nil {
+	if options.runDuration, err = runDuration(); err != nil {
 		return options, err
 	}
-	options.labelExclusion, err = labelExclusion()
-	if err != nil {
+	if options.labelExclusion, err = labelExclusion(); err != nil {
 		return options, err
 	}
-	options.labelRequirement, err = labelRequirement()
-	if err != nil {
+	if options.labelRequirement, err = labelRequirement(); err != nil {
 		return options, err
 	}
-	options.annotationRequirement, err = annotationRequirement()
-	if err != nil {
+	if options.annotationRequirement, err = annotationRequirement(); err != nil {
 		return options, err
 	}
-	options.dryRun, err = dryRun()
-	if err != nil {
+	if options.dryRun, err = dryRun(); err != nil {
 		return options, err
 	}
-	options.maxPods, err = maxPods()
-	if err != nil {
+	if options.maxPods, err = maxPods(); err != nil {
 		return options, err
 	}
-
-	options.evict, err = evict()
-	if err != nil {
+	if options.podSortingStrategy, err = podSortingStrategy(); err != nil {
+		return options, err
+	}
+	if options.evict, err = evict(); err != nil {
 		return options, err
 	}
 
 	// rules
-	options.rules, err = rules.LoadRules()
-	if err != nil {
+	if options.rules, err = rules.LoadRules(); err != nil {
 		return options, err
 	}
 	return options, nil
