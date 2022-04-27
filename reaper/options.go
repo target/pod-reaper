@@ -173,7 +173,6 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 		return func(pods []v1.Pod) {}, nil
 	}
 
-	//rand.Shuffle(len(a), func(i, j int) { a[i], a[j] = a[j], a[i] })
 	switch sortingStrategy {
 	case "random":
 		return func(pods []v1.Pod) {
