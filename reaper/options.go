@@ -191,6 +191,18 @@ func podSortingStrategy() (func([]v1.Pod), error) {
 				return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
 			})
 		}, nil
+	case "newest-first":
+		return func(pods []v1.Pod) {
+			sort.Slice(pods, func(i, j int) bool {
+				if pods[i].Status.StartTime == nil {
+					return false
+				}
+				if pods[j].Status.StartTime == nil {
+					return true
+				}
+				return pods[j].Status.StartTime.Unix() < pods[i].Status.StartTime.Unix()
+			})
+		}, nil
 	default:
 		return nil, errors.New("unknown pod sorting strategy")
 	}

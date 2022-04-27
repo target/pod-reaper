@@ -313,6 +313,7 @@ func TestOptions(t *testing.T) {
 			rand.Seed(2) // magic seed to force switch
 			sorter(subject)
 			assert.NotEqual(t, testPodList(), subject)
+			assert.ElementsMatch(t, testPodList(), subject)
 		})
 		t.Run("oldest-first", func(t *testing.T) {
 			os.Clearenv()
@@ -325,6 +326,20 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, "corgi", subject[0].ObjectMeta.Name)
 			assert.Equal(t, "bearded-dragon", subject[1].ObjectMeta.Name)
 			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
+			assert.ElementsMatch(t, testPodList(), subject)
+		})
+		t.Run("newest-first", func(t *testing.T) {
+			os.Clearenv()
+			os.Setenv(envPodSortingStrategy, "newest-first")
+			sorter, err := podSortingStrategy()
+			assert.NotNil(t, sorter)
+			assert.NoError(t, err)
+			subject := testPodList()
+			sorter(subject)
+			assert.Equal(t, "bearded-dragon", subject[0].ObjectMeta.Name)
+			assert.Equal(t, "corgi", subject[1].ObjectMeta.Name)
+			assert.Equal(t, "nil-start-time", subject[2].ObjectMeta.Name)
+			assert.ElementsMatch(t, testPodList(), subject)
 		})
 	})
 }
