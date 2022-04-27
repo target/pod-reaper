@@ -30,7 +30,7 @@ func TestReaperFilter(t *testing.T) {
 			annotationRequirement: annotationRequirement,
 		},
 	}
-	filteredPods := filter(reaper, pods)
+	filteredPods := filter(reaper, pods...)
 	assert.Equal(t, 1, len(filteredPods))
 	assert.Equal(t, "bearded-dragon", filteredPods[0].ObjectMeta.Name)
 }
