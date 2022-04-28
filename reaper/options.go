@@ -1,8 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	v1 "k8s.io/api/core/v1"
+	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +30,7 @@ const envRequireAnnotationKey = "REQUIRE_ANNOTATION_KEY"
 const envRequireAnnotationValues = "REQUIRE_ANNOTATION_VALUES"
 const envDryRun = "DRY_RUN"
 const envMaxPods = "MAX_PODS"
+const envPodSortingStrategy = "POD_SORTING_STRATEGY"
 const envEvict = "EVICT"
 
 type options struct {
@@ -38,6 +43,7 @@ type options struct {
 	annotationRequirement *labels.Requirement
 	dryRun                bool
 	maxPods               int
+	podSortingStrategy    func([]v1.Pod)
 	rules                 rules.Rules
 	evict                 bool
 }
@@ -163,6 +169,72 @@ func maxPods() (int, error) {
 	return v, nil
 }
 
+func getPodDeletionCost(pod v1.Pod) int32 {
+	// https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#pod-deletion-cost
+	costString, present := pod.ObjectMeta.Annotations["controller.kubernetes.io/pod-deletion-cost"]
+	if !present {
+		return 0
+	}
+	// per k8s doc: invalid values should be rejected by the API server
+	cost, _ := strconv.ParseInt(costString, 10, 32)
+	return int32(cost)
+}
+
+func defaultSort([]v1.Pod) {}
+
+func randomSort(pods []v1.Pod) {
+	rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
+}
+
+func oldestFirstSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		if pods[i].Status.StartTime == nil {
+			return false
+		}
+		if pods[j].Status.StartTime == nil {
+			return true
+		}
+		return pods[i].Status.StartTime.Unix() < pods[j].Status.StartTime.Unix()
+	})
+}
+
+func youngestFirstSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		if pods[i].Status.StartTime == nil {
+			return false
+		}
+		if pods[j].Status.StartTime == nil {
+			return true
+		}
+		return pods[j].Status.StartTime.Unix() < pods[i].Status.StartTime.Unix()
+	})
+}
+
+func podDeletionCostSort(pods []v1.Pod) {
+	sort.Slice(pods, func(i, j int) bool {
+		return getPodDeletionCost(pods[i]) < getPodDeletionCost(pods[j])
+	})
+}
+
+func podSortingStrategy() (func([]v1.Pod), error) {
+	sortingStrategy, present := os.LookupEnv(envPodSortingStrategy)
+	if !present {
+		return defaultSort, nil
+	}
+	switch sortingStrategy {
+	case "random":
+		return randomSort, nil
+	case "oldest-first":
+		return oldestFirstSort, nil
+	case "youngest-first":
+		return youngestFirstSort, nil
+	case "pod-deletion-cost":
+		return podDeletionCostSort, nil
+	default:
+		return nil, errors.New("unknown pod sorting strategy")
+	}
+}
+
 func evict() (bool, error) {
 	value, exists := os.LookupEnv(envEvict)
 	if !exists {
@@ -173,44 +245,37 @@ func evict() (bool, error) {
 
 func loadOptions() (options options, err error) {
 	options.namespace = namespace()
-	options.gracePeriod, err = gracePeriod()
-	if err != nil {
+	if options.gracePeriod, err = gracePeriod(); err != nil {
 		return options, err
 	}
 	options.schedule = schedule()
-	options.runDuration, err = runDuration()
-	if err != nil {
+	if options.runDuration, err = runDuration(); err != nil {
 		return options, err
 	}
-	options.labelExclusion, err = labelExclusion()
-	if err != nil {
+	if options.labelExclusion, err = labelExclusion(); err != nil {
 		return options, err
 	}
-	options.labelRequirement, err = labelRequirement()
-	if err != nil {
+	if options.labelRequirement, err = labelRequirement(); err != nil {
 		return options, err
 	}
-	options.annotationRequirement, err = annotationRequirement()
-	if err != nil {
+	if options.annotationRequirement, err = annotationRequirement(); err != nil {
 		return options, err
 	}
-	options.dryRun, err = dryRun()
-	if err != nil {
+	if options.dryRun, err = dryRun(); err != nil {
 		return options, err
 	}
-	options.maxPods, err = maxPods()
-	if err != nil {
+	if options.maxPods, err = maxPods(); err != nil {
 		return options, err
 	}
-
-	options.evict, err = evict()
-	if err != nil {
+	if options.podSortingStrategy, err = podSortingStrategy(); err != nil {
+		return options, err
+	}
+	if options.evict, err = evict(); err != nil {
 		return options, err
 	}
 
 	// rules
-	options.rules, err = rules.LoadRules()
-	if err != nil {
+	if options.rules, err = rules.LoadRules(); err != nil {
 		return options, err
 	}
 	return options, nil

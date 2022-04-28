@@ -10,11 +10,11 @@ import (
 // Rule is an interface defining the two functions needed for pod reaper to use the rule.
 type Rule interface {
 
-	// load attempts to load the load and returns whether or the not the rule was loaded, a message that will be logged
+	// load attempts to load the load and returns whether the rule was loaded, a message that will be logged
 	// when the rule is loaded, and any error that may have occurred during the load.
 	load() (bool, string, error)
 
-	// ShouldReap takes a pod and returns whether or not the pod should be reaped based on this rule and a message that
+	// ShouldReap takes a pod and returns whether the pod should be reaped based on this rule and a message that
 	// will be logged when the pod is selected for reaping.
 	ShouldReap(pod v1.Pod) (bool, string)
 }
@@ -24,7 +24,7 @@ type Rules struct {
 	LoadedRules []Rule
 }
 
-// LoadRules load all of the rules based on their own implementations
+// LoadRules load all the rules based on their own implementations
 func LoadRules() (Rules, error) {
 	// load all possible rules
 	rules := []Rule{
@@ -45,14 +45,14 @@ func LoadRules() (Rules, error) {
 			loadedRules = append(loadedRules, rule)
 		}
 	}
-	// return an err if no rules where loaded
+	// return an error if no rules where loaded
 	if len(loadedRules) == 0 {
 		return Rules{LoadedRules: loadedRules}, errors.New("no rules were loaded")
 	}
 	return Rules{LoadedRules: loadedRules}, nil
 }
 
-// ShouldReap takes a pod and return whether or not the pod should be reaped based on this rule.
+// ShouldReap takes a pod and return whether the pod should be reaped based on this rule.
 // Also includes a message describing why the pod was flagged for reaping.
 func (rules Rules) ShouldReap(pod v1.Pod) (bool, []string) {
 	var reasons []string

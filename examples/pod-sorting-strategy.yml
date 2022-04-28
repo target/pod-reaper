@@ -1,0 +1,85 @@
+# example configuration with permission for running pod-reaper against
+# an entire cluster
+
+---
+# namespace for the reaper
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reaper
+
+---
+# service account for running pod-reaper
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# minimal permissions required for running pod-reaper at cluster level
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reaper-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "delete"]
+
+---
+# binding the above cluster role (permissions) to the above service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pod-reaper-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-reaper-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: pod-reaper-service-account
+  namespace: reaper
+
+---
+# a basic pod-reaper deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-reaper
+  namespace: reaper # namespace matches above
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-reaper
+  template:
+    metadata:
+      labels:
+        app: pod-reaper
+    spec:
+      serviceAccount: pod-reaper-service-account # service account from above
+      containers:
+      - name: chaos
+        image: brianberzins/pod-reaper:alpha
+        resources:
+          limits:
+            cpu: 30m
+            memory: 30Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+        env:
+          - name: EXCLUDE_LABEL_KEY
+            value: "tier"
+          - name: EXCLUDE_LABEL_VALUES
+            value: "control-plane"
+          - name: SCHEDULE
+            value: "@every 20s"
+          - name: CHAOS_CHANCE
+            value: "1"
+          - name: MAX_PODS
+            value: "1"
+          - name: POD_SORTING_STRATEGY
+            value: "oldest-first"

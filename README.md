@@ -23,6 +23,7 @@ Pod-Reaper is configurable through environment variables. The pod-reaper specifi
 - `REQUIRE_ANNOTATION_VALUES` comma-separated list of metadata annotation values (of key-value pair) that pod-reaper should require
 - `DRY_RUN` log pod-reaper's actions but don't actually kill any pods
 - `MAX_PODS` kill a maximum number of pods on each run
+- `POD_SORTING_STRATEGY` sorts pods before killing them (most useful when used with MAX_PODS)
 - `LOG_LEVEL` control verbosity level of log messages
 - `LOG_FORMAT` choose between several formats of logging
 
@@ -114,6 +115,29 @@ Acceptable values are 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False. A
 Default value: unset (which will behave as if it were set to "0")
 
 Acceptable values are positive integers. Negative integers will evaluate to 0 and any other values will error. This can be useful to prevent too many pods being killed in one run. Logging messages will reflect that a pod was selected for reaping and that pod was not killed because too many pods were reaped already.
+
+### `POD_SORTING_STRATEGY`
+
+Default value: unset (which will use the pod ordering return without specification from the API server). 
+Accepted values:
+- (unset) - use the default ordering from the API server
+- `random` (case-sensitive) will randomly shuffle the list of pods before killing
+- `oldest-first` (case-sensitive) will sort pods into oldest-first based on the pods start time. (!! warning below).
+- `youngest-first` (case-sensitive) will sort pods into youngest-first based on the pods start time (!! warning below)
+- `pod-deletion-cost` (case-sensitive) will sort pods based on the [pod deletion cost annotation](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#pod-deletion-cost). 
+
+!! WARNINGS !!
+
+Pod start time is not always defined. In these cases, sorting strategies based on age put pods without start times at the
+end of the list. From my experience, this usually happens during a race condition with the pod initially being scheduled, 
+but there may be other cases hidden away.
+
+Using pod-reaper against the kube-system namespace can have some surprising implications. For example, during testing I 
+found that the kube-schedule was owned by a master node (not a replicaset/daemon-set) and appeared to effectively ignore
+delete actions. The age returned from `kubectl` was reset, but the actual pod start time was unaffected. As a result of
+this, I found a looping scenario where the kube scheduler was effectively always the oldest pod.
+
+In examples/pod-sorting-strategy.yml I mitigated this using by excluding on the label `tier: control-plane`
 
 ## Logging
 
