@@ -7,8 +7,8 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.5.0
-	github.com/stretchr/testify v1.5.1
-	k8s.io/api v0.17.0
-	k8s.io/apimachinery v0.17.3-beta.0
-	k8s.io/client-go v0.17.0
+	github.com/stretchr/testify v1.6.1
+	k8s.io/api v0.20.0
+	k8s.io/apimachinery v0.20.0
+	k8s.io/client-go v0.20.0
 )
