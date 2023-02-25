@@ -250,10 +250,10 @@ For example, in the same pod-reaper container:
 
 ```sh
 CHAOS_CHANCE=.01
-RUN_DURATION=2h
+MAX_DURATION=2h
 ```
 
-Means that 1/100 pods that also have a run duration of over 2 hours will be reaped. If you want 1/100 pods reaped regardless of duration and also want all pods with a run duration of over hours to be reaped, run two pod-reapers. one with: `CHAOS_CHANCE=.01` and another with `RUN_DURATION=2h`.
+Means that 1/100 pods that also have a run duration of over 2 hours will be reaped. If you want 1/100 pods reaped regardless of duration and also want all pods with a run duration of over hours to be reaped, run two pod-reapers. one with: `CHAOS_CHANCE=.01` and another with `MAX_DURATION=2h`.
 
 ### Deployments
 
