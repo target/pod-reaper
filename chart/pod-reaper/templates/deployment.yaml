@@ -33,7 +33,10 @@ spec:
           {{- end }}
           resources:
 {{ toYaml $.Values.resources | indent 12 }}
-
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 ---
 
 {{- end -}}
