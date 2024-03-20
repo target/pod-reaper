@@ -35,6 +35,16 @@ func (rule *containerStatus) ShouldReap(pod v1.Pod) (bool, string) {
 				return true, fmt.Sprintf("has container status %s", reapStatus)
 			}
 		}
+
+		// Check init containers
+		for _, initContainerStatus := range pod.Status.InitContainerStatuses {
+			state := initContainerStatus.State
+			// Check both waiting and terminated conditions for init containers
+			if (state.Waiting != nil && state.Waiting.Reason == reapStatus) ||
+				(state.Terminated != nil && state.Terminated.Reason == reapStatus) {
+				return true, fmt.Sprintf("has init container status %s", reapStatus)
+			}
+		}
 	}
 	return false, ""
 }

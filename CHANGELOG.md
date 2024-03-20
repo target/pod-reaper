@@ -1,5 +1,8 @@
 # pod-reaper: kills pods dead
 
+### 2.13.0
+- the reaper checks now also the initContainerStatus
+
 ### 2.7.0
 - add `DRY_RUN` mode
 
