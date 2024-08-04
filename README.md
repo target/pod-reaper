@@ -219,7 +219,7 @@ Example:
 SCHEDULE=@every 10m
 POD_STATUSES=Evicted,Unknown
 ```
-Note that pod status is different than container statuses as it checks the status of the overall pod rather than teh status of containers in the pod. The most obvious use case of this if dealing with `Evicted` pods.
+Note that pod status is different than container statuses as it checks the status of the overall pod rather than the status of containers in the pod. The most obvious use case of this if dealing with `Evicted` pods.
 
 ### `MAX_DURATION`
 
