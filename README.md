@@ -118,21 +118,21 @@ Acceptable values are positive integers. Negative integers will evaluate to 0 an
 
 ### `POD_SORTING_STRATEGY`
 
-Default value: unset (which will use the pod ordering return without specification from the API server). 
+Default value: unset (which will use the pod ordering return without specification from the API server).
 Accepted values:
 - (unset) - use the default ordering from the API server
 - `random` (case-sensitive) will randomly shuffle the list of pods before killing
 - `oldest-first` (case-sensitive) will sort pods into oldest-first based on the pods start time. (!! warning below).
 - `youngest-first` (case-sensitive) will sort pods into youngest-first based on the pods start time (!! warning below)
-- `pod-deletion-cost` (case-sensitive) will sort pods based on the [pod deletion cost annotation](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#pod-deletion-cost). 
+- `pod-deletion-cost` (case-sensitive) will sort pods based on the [pod deletion cost annotation](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#pod-deletion-cost).
 
 !! WARNINGS !!
 
 Pod start time is not always defined. In these cases, sorting strategies based on age put pods without start times at the
-end of the list. From my experience, this usually happens during a race condition with the pod initially being scheduled, 
+end of the list. From my experience, this usually happens during a race condition with the pod initially being scheduled,
 but there may be other cases hidden away.
 
-Using pod-reaper against the kube-system namespace can have some surprising implications. For example, during testing I 
+Using pod-reaper against the kube-system namespace can have some surprising implications. For example, during testing I
 found that the kube-schedule was owned by a master node (not a replicaset/daemon-set) and appeared to effectively ignore
 delete actions. The age returned from `kubectl` was reset, but the actual pod start time was unaffected. As a result of
 this, I found a looping scenario where the kube scheduler was effectively always the oldest pod.
@@ -141,7 +141,7 @@ In examples/pod-sorting-strategy.yml I mitigated this using by excluding on the 
 
 ## Logging
 
-Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus). 
+Pod reaper logs in JSON format using a logrus (https://github.com/sirupsen/logrus).
 
 - rule load: customer messages for each rule are logged when the pod-reaper is starting
 - reap cycle: a message is logged each time the reaper starts a cycle.
@@ -208,7 +208,7 @@ Note that this will not catch statuses that are describing the entire pod like t
 
 ### `POD_STATUS`
 
-Flags a pod for reaping based on the pod status. 
+Flags a pod for reaping based on the pod status.
 
 Enabled and configured by setting the environment variable `POD_STATUSES` with a comma separated list (no whitespace) of statuses. If the pod status in the specified list of status, the pod will be flagged for reaping.
 
@@ -232,7 +232,7 @@ Example:
 ```sh
 # every 10 minutes, kill all pods with status Pending or Failed
 SCHEDULE=@every 10m
-POD_STATUSES=Pending,Failed
+POD_PHASE_STATUSES=Pending,Failed
 ```
 
 ### `MAX_DURATION`
