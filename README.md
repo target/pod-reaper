@@ -210,7 +210,7 @@ Note that this will not catch statuses that are describing the entire pod like t
 
 Flags a pod for reaping based on the pod status. 
 
-Enabled and configured by setting the environment variable `POD_STATUSES` with a coma separated list (no whitespace) of statuses. If the pod status in the specified list of status, the pod will be flagged for reaping.
+Enabled and configured by setting the environment variable `POD_STATUSES` with a comma separated list (no whitespace) of statuses. If the pod status in the specified list of status, the pod will be flagged for reaping.
 
 Example:
 
@@ -220,6 +220,20 @@ SCHEDULE=@every 10m
 POD_STATUSES=Evicted,Unknown
 ```
 Note that pod status is different than container statuses as it checks the status of the overall pod rather than the status of containers in the pod. The most obvious use case of this if dealing with `Evicted` pods.
+
+### `POD_PHASE_STATUSES`
+
+Flags a pod for reaping based on it's `pod.Status.Phase` - i.e. `Pending`, `Running`, `Succeeded`, `Failed`, `Unknown`. See [Kubernetes Go client docs on this type here.](https://pkg.go.dev/k8s.io/api/core/v1#PodPhase)
+
+Enabled and configured by setting the environment variable `POD_PHASE_STATUSES` with a comma-separated list (no whitespaces) of pod status phases. If a pod is in the status phase specified in the list, it will be flagged for reaping.
+
+Example:
+
+```sh
+# every 10 minutes, kill all pods with status Pending or Failed
+SCHEDULE=@every 10m
+POD_STATUSES=Pending,Failed
+```
 
 ### `MAX_DURATION`
 
