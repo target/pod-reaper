@@ -1,5 +1,9 @@
 # pod-reaper: kills pods dead
 
+### 2.14.0
+
+- add `POD_STATUS_PHASES` to reap pods by pod.Status.Phase (Pending, Running, Succeeded, Failed, Unknown)
+
 ### 2.13.0
 - the reaper checks now also the initContainerStatus
 

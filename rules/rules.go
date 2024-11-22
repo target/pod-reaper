@@ -33,6 +33,7 @@ func LoadRules() (Rules, error) {
 		&duration{},
 		&unready{},
 		&podStatus{},
+		&podStatusPhase{},
 	}
 	// return only the active rules
 	loadedRules := []Rule{}
