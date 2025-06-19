@@ -60,12 +60,11 @@ func (reaper reaper) getPods() *v1.PodList {
 		listOptions.LabelSelector = selector.String()
 	}
 	podList, err := pods.List(listOptions)
-	reaper.options.podSortingStrategy(podList.Items)
-
 	if err != nil {
 		logrus.WithError(err).Panic("unable to get pods from the cluster")
 		panic(err)
 	}
+	reaper.options.podSortingStrategy(podList.Items)
 	if reaper.options.annotationRequirement != nil {
 		podList.Items = filter(reaper, podList.Items...)
 	}
