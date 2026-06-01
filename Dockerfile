@@ -1,5 +1,5 @@
 # Build
-FROM golang:1.17 AS build
+FROM golang:1.26 AS build
 WORKDIR /go/src/github.com/target/pod-reaper
 ENV CGO_ENABLED=0 GOOS=linux
 COPY ./ ./
