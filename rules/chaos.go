@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"time"
 
 	v1 "k8s.io/api/core/v1"
 )
@@ -16,10 +15,6 @@ var _ Rule = (*chaos)(nil)
 
 type chaos struct {
 	chance float64
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 func (rule *chaos) load() (bool, string, error) {

@@ -44,7 +44,7 @@ func getLogFormat() logrus.Formatter {
 	if !exists || formatString == logrusFormat {
 		return &logrus.JSONFormatter{}
 	} else if formatString == fluentdFormat {
-		return &joonix.FluentdFormatter{}
+		return joonix.NewFormatter()
 	} else {
 		logrus.Errorf("unknown %s: %v", envLogFormat, formatString)
 		return &logrus.JSONFormatter{}

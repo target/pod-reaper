@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"math"
 	"os"
 	"testing"
 
@@ -32,6 +33,34 @@ func TestChaosLoad(t *testing.T) {
 		assert.Equal(t, "", message)
 		assert.False(t, loaded)
 	})
+	t.Run("negative chance loads successfully", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envChaosChance, "-0.5")
+		c := chaos{}
+		loaded, message, err := c.load()
+		assert.NoError(t, err)
+		assert.True(t, loaded)
+		assert.Equal(t, "chaos chance -0.5", message)
+		assert.Equal(t, -0.5, c.chance)
+	})
+	t.Run("chance above 1 loads successfully", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envChaosChance, "2.0")
+		c := chaos{}
+		loaded, message, err := c.load()
+		assert.NoError(t, err)
+		assert.True(t, loaded)
+		assert.Equal(t, "chaos chance 2.0", message)
+		assert.Equal(t, 2.0, c.chance)
+	})
+	t.Run("whitespace causes parse error", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envChaosChance, " 0.5 ")
+		loaded, message, err := (&chaos{}).load()
+		assert.Error(t, err)
+		assert.Equal(t, "", message)
+		assert.False(t, loaded)
+	})
 }
 
 func TestChaosShouldReap(t *testing.T) {
@@ -51,5 +80,45 @@ func TestChaosShouldReap(t *testing.T) {
 		chaos.load()
 		shouldReap, _ := chaos.ShouldReap(v1.Pod{})
 		assert.False(t, shouldReap)
+	})
+	t.Run("negative chance never reaps", func(t *testing.T) {
+		c := chaos{chance: -0.5}
+		// rand.Float64() returns [0.0, 1.0), so it's always >= -0.5
+		for i := 0; i < 100; i++ {
+			shouldReap, _ := c.ShouldReap(v1.Pod{})
+			assert.False(t, shouldReap)
+		}
+	})
+	t.Run("chance above 1 always reaps", func(t *testing.T) {
+		c := chaos{chance: 2.0}
+		// rand.Float64() returns [0.0, 1.0), so it's always < 2.0
+		for i := 0; i < 100; i++ {
+			shouldReap, _ := c.ShouldReap(v1.Pod{})
+			assert.True(t, shouldReap)
+		}
+	})
+	t.Run("NaN chance never reaps", func(t *testing.T) {
+		c := chaos{chance: math.NaN()}
+		// Any comparison with NaN returns false
+		for i := 0; i < 100; i++ {
+			shouldReap, _ := c.ShouldReap(v1.Pod{})
+			assert.False(t, shouldReap)
+		}
+	})
+	t.Run("positive Inf chance always reaps", func(t *testing.T) {
+		c := chaos{chance: math.Inf(1)}
+		// rand.Float64() returns [0.0, 1.0), which is always < +Inf
+		for i := 0; i < 100; i++ {
+			shouldReap, _ := c.ShouldReap(v1.Pod{})
+			assert.True(t, shouldReap)
+		}
+	})
+	t.Run("negative Inf chance never reaps", func(t *testing.T) {
+		c := chaos{chance: math.Inf(-1)}
+		// rand.Float64() returns [0.0, 1.0), which is never < -Inf
+		for i := 0; i < 100; i++ {
+			shouldReap, _ := c.ShouldReap(v1.Pod{})
+			assert.False(t, shouldReap)
+		}
 	})
 }

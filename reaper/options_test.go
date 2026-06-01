@@ -1,17 +1,15 @@
 package main
 
 import (
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"math/rand"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
-	"io/ioutil"
-
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -318,11 +316,20 @@ func TestOptions(t *testing.T) {
 			sorter, err := podSortingStrategy()
 			assert.NotNil(t, sorter)
 			assert.NoError(t, err)
-			subject := testPodList()
-			rand.Seed(2) // magic seed to force switch
-			sorter(subject)
-			assert.NotEqual(t, testPodList(), subject)
-			assert.ElementsMatch(t, testPodList(), subject)
+
+			// Run multiple shuffles to verify randomness
+			// (single shuffle has 1/24 chance of returning original order)
+			original := testPodList()
+			shuffled := false
+			for i := 0; i < 10; i++ {
+				subject := testPodList()
+				sorter(subject)
+				assert.ElementsMatch(t, original, subject)
+				if !assert.ObjectsAreEqual(original, subject) {
+					shuffled = true
+				}
+			}
+			assert.True(t, shuffled, "random sorter should produce different orderings")
 		})
 		t.Run("oldest-first", func(t *testing.T) {
 			os.Clearenv()

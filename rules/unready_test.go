@@ -83,4 +83,91 @@ func TestUnreadyShouldReap(t *testing.T) {
 		shouldReap, _ := unready.ShouldReap(pod)
 		assert.False(t, shouldReap)
 	})
+	t.Run("zero LastTransitionTime does not reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "1m")
+		u := unready{}
+		u.load()
+		// Create pod with condition but zero-value LastTransitionTime
+		pod := v1.Pod{
+			Status: v1.PodStatus{
+				Conditions: []v1.PodCondition{
+					{
+						Type:               v1.PodReady,
+						Status:             "False",
+						LastTransitionTime: metav1.Time{}, // zero value
+					},
+				},
+			},
+		}
+		shouldReap, _ := u.ShouldReap(pod)
+		// Zero time means we can't determine how long the pod has been unready,
+		// so we defensively skip reaping
+		assert.False(t, shouldReap)
+	})
+	t.Run("Status Unknown treated as unready", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "1m")
+		u := unready{}
+		u.load()
+		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+		setTime := metav1.NewTime(lastTransitionTime)
+		pod := v1.Pod{
+			Status: v1.PodStatus{
+				Conditions: []v1.PodCondition{
+					{
+						Type:               v1.PodReady,
+						Status:             "Unknown",
+						LastTransitionTime: setTime,
+					},
+				},
+			},
+		}
+		shouldReap, _ := u.ShouldReap(pod)
+		// "Unknown" != "True", so treated as unready
+		assert.True(t, shouldReap)
+	})
+	t.Run("Status empty string treated as unready", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "1m")
+		u := unready{}
+		u.load()
+		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+		setTime := metav1.NewTime(lastTransitionTime)
+		pod := v1.Pod{
+			Status: v1.PodStatus{
+				Conditions: []v1.PodCondition{
+					{
+						Type:               v1.PodReady,
+						Status:             "",
+						LastTransitionTime: setTime,
+					},
+				},
+			},
+		}
+		shouldReap, _ := u.ShouldReap(pod)
+		// "" != "True", so treated as unready
+		assert.True(t, shouldReap)
+	})
+	t.Run("Status True does not reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxUnready, "1m")
+		u := unready{}
+		u.load()
+		lastTransitionTime := time.Now().Add(-10 * time.Minute)
+		setTime := metav1.NewTime(lastTransitionTime)
+		pod := v1.Pod{
+			Status: v1.PodStatus{
+				Conditions: []v1.PodCondition{
+					{
+						Type:               v1.PodReady,
+						Status:             "True",
+						LastTransitionTime: setTime,
+					},
+				},
+			},
+		}
+		shouldReap, _ := u.ShouldReap(pod)
+		assert.False(t, shouldReap)
+	})
 }

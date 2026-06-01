@@ -35,6 +35,12 @@ func (rule *unready) ShouldReap(pod v1.Pod) (bool, string) {
 		return false, ""
 	}
 
+	// Defensive check: if LastTransitionTime is zero, we can't reliably determine
+	// how long the pod has been unready, so skip reaping
+	if condition.LastTransitionTime.IsZero() {
+		return false, ""
+	}
+
 	transitionTime := time.Unix(condition.LastTransitionTime.Unix(), 0) // convert to standard go time
 	cutoffTime := time.Now().Add(-1 * rule.duration)
 	unreadyDuration := time.Now().Sub(transitionTime)

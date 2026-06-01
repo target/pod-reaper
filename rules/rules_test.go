@@ -77,4 +77,74 @@ func TestShouldReap(t *testing.T) {
 		shouldReap, _ := loaded.ShouldReap(testPod())
 		assert.False(t, shouldReap)
 	})
+	t.Run("all 6 rules loaded", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envChaosChance, "1.0")
+		os.Setenv(envContainerStatus, "CrashLoopBackOff")
+		os.Setenv(envMaxDuration, "1h")
+		os.Setenv(envMaxUnready, "10m")
+		os.Setenv(envPodStatus, "Evicted")
+		os.Setenv(envPodStatusPhase, "Failed")
+		rules, err := LoadRules()
+		assert.NoError(t, err)
+		assert.Equal(t, 6, len(rules.LoadedRules))
+	})
+	t.Run("AND logic - one false rule prevents reap", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envChaosChance, "0.0")       // always false
+		os.Setenv(envContainerStatus, "Error") // would match
+		os.Setenv(envMaxDuration, "1s")        // would match (pod is 2min old)
+		rules, _ := LoadRules()
+		shouldReap, reasons := rules.ShouldReap(testPod())
+		assert.False(t, shouldReap)
+		assert.Empty(t, reasons) // no reasons when short-circuited
+	})
+	t.Run("complex pod with init containers and multiple conditions", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envContainerStatus, "ImagePullBackOff")
+		os.Setenv(envMaxDuration, "1m")
+		rules, err := LoadRules()
+		assert.NoError(t, err)
+
+		// Create complex pod
+		startTime := metav1.NewTime(time.Now().Add(-5 * time.Minute))
+		transitionTime := metav1.NewTime(time.Now().Add(-3 * time.Minute))
+		pod := v1.Pod{
+			Status: v1.PodStatus{
+				StartTime: &startTime,
+				Phase:     v1.PodPending,
+				Reason:    "ImagePullBackOff",
+				ContainerStatuses: []v1.ContainerStatus{
+					{
+						Name: "main",
+						State: v1.ContainerState{
+							Running: &v1.ContainerStateRunning{},
+						},
+					},
+				},
+				InitContainerStatuses: []v1.ContainerStatus{
+					{
+						Name:  "init",
+						State: testWaitContainerState("ImagePullBackOff"),
+					},
+				},
+				Conditions: []v1.PodCondition{
+					{
+						Type:               v1.PodReady,
+						Status:             "False",
+						LastTransitionTime: transitionTime,
+					},
+					{
+						Type:   v1.PodInitialized,
+						Status: "False",
+					},
+				},
+			},
+		}
+		shouldReap, reasons := rules.ShouldReap(pod)
+		assert.True(t, shouldReap)
+		assert.Equal(t, 2, len(reasons))
+		// Check that init container status was matched
+		assert.Contains(t, reasons[0], "init container")
+	})
 }

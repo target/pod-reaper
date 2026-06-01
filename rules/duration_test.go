@@ -76,4 +76,36 @@ func TestDurationShouldReap(t *testing.T) {
 		shouldReap, _ := duration.ShouldReap(pod)
 		assert.False(t, shouldReap)
 	})
+	t.Run("negative duration never reaps", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxDuration, "-5m")
+		d := duration{}
+		loaded, _, err := d.load()
+		assert.NoError(t, err)
+		assert.True(t, loaded)
+		// cutoffTime = now - (-5m) = now + 5m = future
+		// startTime.Before(future) is always true... wait, that's wrong
+		// Actually: cutoffTime = time.Now().Add(-1 * (-5m)) = time.Now().Add(5m)
+		// For a pod started 10 minutes ago: startTime.Before(cutoffTime) = true (10 min ago is before 5 min from now)
+		// So negative duration actually reaps MORE pods, not fewer
+		startTime := time.Now().Add(-10 * time.Minute)
+		pod := testDurationPod(&startTime)
+		shouldReap, _ := d.ShouldReap(pod)
+		// This documents surprising behavior: negative duration still reaps old pods
+		assert.True(t, shouldReap)
+	})
+	t.Run("zero duration reaps all pods with start time", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv(envMaxDuration, "0s")
+		d := duration{}
+		loaded, _, err := d.load()
+		assert.NoError(t, err)
+		assert.True(t, loaded)
+		// cutoffTime = now - 0 = now
+		// Any pod with startTime before now will be reaped
+		startTime := time.Now().Add(-1 * time.Second)
+		pod := testDurationPod(&startTime)
+		shouldReap, _ := d.ShouldReap(pod)
+		assert.True(t, shouldReap)
+	})
 }

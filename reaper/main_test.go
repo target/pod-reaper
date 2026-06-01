@@ -66,6 +66,6 @@ func TestGetLogFormat(t *testing.T) {
 		os.Clearenv()
 		os.Setenv(envLogFormat, "Fluentd")
 		format := getLogFormat()
-		assert.Equal(t, reflect.TypeOf(format), reflect.TypeOf(&joonix.FluentdFormatter{}))
+		assert.Equal(t, reflect.TypeOf(format), reflect.TypeOf(&joonix.Formatter{}))
 	})
 }
