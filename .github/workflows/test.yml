@@ -22,7 +22,7 @@ jobs:
       - name: QEMU setup
         uses: docker/setup-qemu-action@v1
       - name: Docker Buildx Setup
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v4
       - name: Docker Build
         id: docker_build
         uses: docker/build-push-action@v2
